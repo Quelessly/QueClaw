@@ -1,0 +1,131 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Vendor {
+  id            String   @id @default(uuid())
+  name          String
+  email         String   @unique
+  password_hash String
+  upi_id        String?
+  created_at    DateTime @default(now())
+
+  menu_items  MenuItem[]
+  orders      Order[]
+  settlements VendorSettlement[]
+
+  @@map("vendors")
+}
+
+model MenuItem {
+  id           String   @id @default(uuid())
+  vendor_id    String
+  name         String
+  price        Decimal  @db.Decimal(10, 2)
+  category     String
+  image_url    String?
+  is_available Boolean  @default(true)
+  created_at   DateTime @default(now())
+
+  vendor      Vendor      @relation(fields: [vendor_id], references: [id])
+  order_items OrderItem[]
+
+  @@index([vendor_id])
+  @@map("menu_items")
+}
+
+model Order {
+  id             String        @id @default(uuid())
+  vendor_id      String
+  status         OrderStatus   @default(pending)
+  payment_status PaymentStatus @default(pending)
+  total_amount   Decimal       @db.Decimal(10, 2)
+  expires_at     DateTime
+  created_at     DateTime      @default(now())
+
+  vendor      Vendor      @relation(fields: [vendor_id], references: [id])
+  order_items OrderItem[]
+  payment     Payment?
+
+  @@index([vendor_id])
+  @@index([status])
+  @@map("orders")
+}
+
+model OrderItem {
+  id           String  @id @default(uuid())
+  order_id     String
+  menu_item_id String
+  quantity     Int
+  price        Decimal @db.Decimal(10, 2)
+
+  order     Order    @relation(fields: [order_id], references: [id])
+  menu_item MenuItem @relation(fields: [menu_item_id], references: [id])
+
+  @@map("order_items")
+}
+
+model Payment {
+  id                  String        @id @default(uuid())
+  order_id            String        @unique
+  razorpay_order_id   String        @unique
+  razorpay_payment_id String?
+  razorpay_signature  String?
+  status              PaymentStatus @default(pending)
+  amount              Decimal       @db.Decimal(10, 2)
+  method              String?
+  failure_reason      String?
+  created_at          DateTime      @default(now())
+
+  order Order @relation(fields: [order_id], references: [id])
+
+  @@map("payments")
+}
+
+model VendorSettlement {
+  id            String           @id @default(uuid())
+  vendor_id     String
+  date          DateTime         @db.Date
+  total_orders  Int              @default(0)
+  gross_amount  Decimal          @db.Decimal(10, 2)
+  platform_fee  Decimal          @db.Decimal(10, 2) @default(0)
+  net_amount    Decimal          @db.Decimal(10, 2)
+  payout_status SettlementStatus @default(pending)
+  notes         String?
+  settled_at    DateTime?
+  created_at    DateTime         @default(now())
+
+  vendor Vendor @relation(fields: [vendor_id], references: [id])
+
+  @@unique([vendor_id, date])
+  @@map("vendor_settlements")
+}
+
+enum OrderStatus {
+  pending
+  paid
+  preparing
+  ready
+  completed
+  cancelled
+}
+
+enum PaymentStatus {
+  pending
+  authorized
+  captured
+  failed
+  refunded
+}
+
+enum SettlementStatus {
+  pending
+  processing
+  done
+  failed
+}
