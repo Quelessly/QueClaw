@@ -1,13 +1,35 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Footer from '@/components/Footer'
+
+interface ActiveOrder {
+  orderId: string
+  vendorId: string
+  total: number
+  items: { name: string; quantity: number }[]
+  timestamp: number
+}
 
 export default function HomePage() {
   const router = useRouter()
   const [vendorId, setVendorId] = useState('')
   const [showInput, setShowInput] = useState(false)
+  const [activeOrder, setActiveOrder] = useState<ActiveOrder | null>(null)
+
+  useEffect(() => {
+    const stored = localStorage.getItem('active_order')
+    if (stored) {
+      const order = JSON.parse(stored) as ActiveOrder
+      // Only show if order is less than 2 hours old
+      if (Date.now() - order.timestamp < 2 * 60 * 60 * 1000) {
+        setActiveOrder(order)
+      } else {
+        localStorage.removeItem('active_order')
+      }
+    }
+  }, [])
 
   const goToMenu = () => {
     if (vendorId.trim()) router.push(`/v/${vendorId}`)
@@ -18,6 +40,26 @@ export default function HomePage() {
   return (
     <>
       <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-5 gap-8">
+
+        {/* Active order banner */}
+        {activeOrder && (
+          <button
+            onClick={() => router.push(`/order/${activeOrder.orderId}`)}
+            className="w-full max-w-md bg-lime-400/10 border border-lime-400/30 rounded-3xl px-5 py-4 flex items-center justify-between gap-3 active:scale-[0.98] transition-all animate-slide-up"
+          >
+            <div className="flex items-center gap-3">
+              <span className="w-2 h-2 rounded-full bg-lime-400 animate-pulse shrink-0" />
+              <div className="text-left">
+                <p className="text-lime-400 font-bold text-sm">Active Order</p>
+                <p className="text-zinc-400 text-xs mt-0.5">
+                  ₹{activeOrder.total} · {activeOrder.items.length} item{activeOrder.items.length !== 1 ? 's' : ''}
+                </p>
+              </div>
+            </div>
+            <span className="text-lime-400 text-sm font-bold">Track →</span>
+          </button>
+        )}
+
         {/* Logo */}
         <div className="flex flex-col items-center gap-5">
           <div className="w-24 h-24 bg-lime-400 rounded-4xl flex items-center justify-center glow-lime">
@@ -33,7 +75,6 @@ export default function HomePage() {
 
         {/* CTA Grid */}
         <div className="w-full max-w-md space-y-3">
-          {/* Student path */}
           <button
             onClick={() => setShowInput(!showInput)}
             className="w-full glass rounded-3xl px-6 py-6 text-left transition-all duration-300 active:scale-[0.98] hover:border-lime-400/40"
@@ -63,7 +104,6 @@ export default function HomePage() {
             </div>
           )}
 
-          {/* Vendor path */}
           <button
             onClick={goToDashboard}
             className="w-full glass rounded-3xl px-6 py-6 text-left transition-all duration-300 active:scale-[0.98] hover:border-lime-400/40"
