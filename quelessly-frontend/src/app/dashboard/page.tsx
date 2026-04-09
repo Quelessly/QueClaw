@@ -62,6 +62,8 @@ const STATUS_LABEL: Record<string, string> = {
   ready: 'Ready', completed: 'Done', cancelled: 'Cancelled',
 }
 
+const SUGGESTED_CATEGORIES = ['Veg', 'Non-Veg', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Desserts']
+
 // ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
@@ -210,31 +212,31 @@ function DashboardShell({
 
     let socket: ReturnType<typeof getSocket> | null = null
 
-  try {
-  socket = getSocket()
-  if (socket) {
-    if (vendor?.id) socket.emit('join_vendor', vendor.id)
+    try {
+      socket = getSocket()
+      if (socket) {
+        if (vendor?.id) socket.emit('join_vendor', vendor.id)
 
-    socket.on('new_order', (data: Order) => {
-      if (!data?.id) return
-      setOrders((prev) => [data, ...prev])
-      setNewOrderIds((prev) => new Set([...prev, data.id]))
-      toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
-      setTimeout(() => setNewOrderIds((prev) => {
-        const next = new Set(prev); next.delete(data.id); return next
-      }), 5000)
-    })
+        socket.on('new_order', (data: Order) => {
+          if (!data?.id) return
+          setOrders((prev) => [data, ...prev])
+          setNewOrderIds((prev) => new Set([...prev, data.id]))
+          toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
+          setTimeout(() => setNewOrderIds((prev) => {
+            const next = new Set(prev); next.delete(data.id); return next
+          }), 5000)
+        })
 
-    socket.on('order_updated', (data: { order_id: string; status: string }) => {
-      if (!data?.order_id) return
-      setOrders((prev) => prev.map((o) =>
-        o.id === data.order_id ? { ...o, status: data.status } : o
-      ))
-    })
-  }
-} catch (err) {
-  console.error('Socket init failed:', err)
-}
+        socket.on('order_updated', (data: { order_id: string; status: string }) => {
+          if (!data?.order_id) return
+          setOrders((prev) => prev.map((o) =>
+            o.id === data.order_id ? { ...o, status: data.status } : o
+          ))
+        })
+      }
+    } catch (err) {
+      console.error('Socket init failed:', err)
+    }
 
     return () => {
       if (socket) {
@@ -581,6 +583,7 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
         <MenuItemForm
           token={token}
           editItem={editItem}
+          existingCategories={categories}
           onClose={() => { setShowForm(false); setEditItem(null) }}
           onSave={() => { setShowForm(false); setEditItem(null); load(); toast(editItem ? 'Updated' : 'Item added', 'success') }}
           toast={toast}
@@ -724,11 +727,14 @@ function MenuItemRow({
   )
 }
 
+// ─── Menu Item Form ───────────────────────────────────────────────────────────
+
 function MenuItemForm({
-  token, editItem, onClose, onSave, toast,
+  token, editItem, existingCategories, onClose, onSave, toast,
 }: {
   token: string
   editItem: MenuItem | null
+  existingCategories: string[]
   onClose: () => void
   onSave: () => void
   toast: (m: string, t?: any) => void
@@ -737,6 +743,9 @@ function MenuItemForm({
   const [price, setPrice] = useState(editItem?.price ?? '')
   const [category, setCategory] = useState(editItem?.category ?? '')
   const [loading, setLoading] = useState(false)
+
+  // Merge suggestions with vendor's existing categories, deduplicated
+  const allOptions = Array.from(new Set([...SUGGESTED_CATEGORIES, ...existingCategories]))
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -761,7 +770,10 @@ function MenuItemForm({
         <p className="font-display font-bold text-white tracking-tighter">
           {editItem ? 'Edit item' : 'New item'}
         </p>
-        <button onClick={onClose} className="w-7 h-7 rounded-xl bg-zinc-800 text-zinc-500 text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors">✕</button>
+        <button
+          onClick={onClose}
+          className="w-7 h-7 rounded-xl bg-zinc-800 text-zinc-500 text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors"
+        >✕</button>
       </div>
       <form onSubmit={handleSubmit} className="space-y-3">
         <input
@@ -779,19 +791,43 @@ function MenuItemForm({
             placeholder="Price ₹"
             className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
           />
-          <input
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="Category"
-            list="cat-opts"
-            className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
-          />
-          <datalist id="cat-opts">
-            {['Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Desserts'].map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
+          <div className="relative">
+            <input
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+              placeholder="Category"
+              list="cat-opts"
+              className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
+            />
+            <datalist id="cat-opts">
+              {allOptions.map((c) => (
+                <option key={c} value={c} />
+              ))}
+            </datalist>
+          </div>
         </div>
+
+        {/* Quick-pick chips */}
+        <div>
+          <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2">Quick pick</p>
+          <div className="flex flex-wrap gap-1.5">
+            {allOptions.map((c) => (
+              <button
+                key={c}
+                type="button"
+                onClick={() => setCategory(c)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all duration-150 active:scale-95 ${
+                  category === c
+                    ? 'bg-lime-400 text-black border-transparent'
+                    : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500 hover:text-zinc-200'
+                }`}
+              >
+                {c}
+              </button>
+            ))}
+          </div>
+        </div>
+
         <button
           type="submit"
           disabled={loading}
