@@ -27,7 +27,7 @@ model MenuItem {
   vendor_id    String
   name         String
   price        Decimal  @db.Decimal(10, 2)
-  category     String
+  categories   String[]
   image_url    String?
   is_available Boolean  @default(true)
   created_at   DateTime @default(now())

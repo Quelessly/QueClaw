@@ -10,7 +10,7 @@ interface MenuItem {
   id: string
   name: string
   price: number
-  category: string
+  categories: string[]
   image_url: string | null
   is_available: boolean
 }
@@ -18,6 +18,8 @@ interface MenuItem {
 interface CartItem extends MenuItem { quantity: number }
 
 const CAT_GRADIENT: Record<string, string> = {
+  Veg:       'from-green-400 to-emerald-600',
+  'Non-Veg': 'from-red-400 to-rose-600',
   Breakfast: 'from-amber-400 to-orange-500',
   Drinks:    'from-cyan-400 to-blue-500',
   Snacks:    'from-lime-400 to-emerald-500',
@@ -27,12 +29,23 @@ const CAT_GRADIENT: Record<string, string> = {
 }
 
 const CAT_ICON: Record<string, string> = {
+  Veg: '🥗', 'Non-Veg': '🍗',
   Breakfast: '🌅', Drinks: '☕', Snacks: '🍟',
   Lunch: '🍱', Dinner: '🍽️', Desserts: '🍰',
 }
 
-function getGradient(cat: string) {
-  return CAT_GRADIENT[cat] ?? 'from-zinc-600 to-zinc-700'
+function getGradient(cats: string[]) {
+  for (const c of cats) {
+    if (CAT_GRADIENT[c]) return CAT_GRADIENT[c]
+  }
+  return 'from-zinc-600 to-zinc-700'
+}
+
+function getIcon(cats: string[]) {
+  for (const c of cats) {
+    if (CAT_ICON[c]) return CAT_ICON[c]
+  }
+  return '🍴'
 }
 
 export default function MenuPage() {
@@ -62,13 +75,16 @@ export default function MenuPage() {
     }
   }, [vendorId])
 
+  // Build unique category list from all items' categories arrays
   const categories = useMemo(
-    () => ['All', ...Array.from(new Set(items.map((i) => i.category)))],
+    () => ['All', ...Array.from(new Set(items.flatMap((i) => i.categories ?? [])))],
     [items]
   )
 
   const filtered = useMemo(() => {
-    let list = activeCategory === 'All' ? items : items.filter((i) => i.category === activeCategory)
+    let list = activeCategory === 'All'
+      ? items
+      : items.filter((i) => (i.categories ?? []).includes(activeCategory))
     if (search.trim()) list = list.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
     return list.filter((i) => i.is_available)
   }, [items, activeCategory, search])
@@ -101,12 +117,9 @@ export default function MenuPage() {
   return (
     <>
       <div className="min-h-screen bg-zinc-950 pb-36">
-
         {/* Floating glass header */}
         <div className="fixed top-4 left-4 right-4 z-50 glass rounded-full px-5 py-3 flex items-center justify-between">
-          <span className="font-display font-bold text-white tracking-tighter text-base lowercase">
-            {vendorName}
-          </span>
+          <span className="font-display font-bold text-white tracking-tighter text-base lowercase">{vendorName}</span>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
             <span className="text-xs text-zinc-400 tabular-nums">
@@ -119,27 +132,18 @@ export default function MenuPage() {
         <div className="pt-24 px-4 pb-3">
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm pointer-events-none">⌕</span>
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search menu…"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-full pl-10 pr-5 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-lime-400/50 transition-colors"
-            />
+            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search menu…"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-full pl-10 pr-5 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-lime-400/50 transition-colors" />
           </div>
         </div>
 
         {/* Category pills */}
         <div className="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
           {categories.map((cat) => (
-            <button
-              key={cat}
-              onClick={() => setActiveCategory(cat)}
+            <button key={cat} onClick={() => setActiveCategory(cat)}
               className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap border transition-all duration-200 active:scale-95 ${
-                activeCategory === cat
-                  ? 'bg-lime-400 text-black border-transparent'
-                  : 'bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600'
-              }`}
-            >
+                activeCategory === cat ? 'bg-lime-400 text-black border-transparent' : 'bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600'
+              }`}>
               {cat !== 'All' && <span className="text-xs">{CAT_ICON[cat] ?? '🍴'}</span>}
               {cat}
             </button>
@@ -149,10 +153,8 @@ export default function MenuPage() {
         {/* Active order banner */}
         {activeOrder && (
           <div className="px-4 pb-2">
-            <button
-              onClick={() => router.push(`/order/${activeOrder.orderId}`)}
-              className="w-full bg-lime-400/10 border border-lime-400/30 rounded-2xl px-4 py-3 flex items-center justify-between active:scale-[0.98] transition-all"
-            >
+            <button onClick={() => router.push(`/order/${activeOrder.orderId}`)}
+              className="w-full bg-lime-400/10 border border-lime-400/30 rounded-2xl px-4 py-3 flex items-center justify-between active:scale-[0.98] transition-all">
               <div className="flex items-center gap-2">
                 <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
                 <p className="text-lime-400 font-bold text-sm">Active order · ₹{activeOrder.total}</p>
@@ -188,13 +190,9 @@ export default function MenuPage() {
 
         {/* Cart floating pill */}
         {totalItems > 0 && (
-          <button
-            onClick={goToCart}
-            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-lime-400 text-black px-6 py-4 rounded-full glow-lime font-bold text-sm whitespace-nowrap flex items-center gap-4 active:scale-95 transition-all duration-300"
-          >
-            <span className="bg-black/15 text-black font-black text-xs px-2.5 py-0.5 rounded-full">
-              {totalItems}
-            </span>
+          <button onClick={goToCart}
+            className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-lime-400 text-black px-6 py-4 rounded-full glow-lime font-bold text-sm whitespace-nowrap flex items-center gap-4 active:scale-95 transition-all duration-300">
+            <span className="bg-black/15 text-black font-black text-xs px-2.5 py-0.5 rounded-full">{totalItems}</span>
             View Cart
             <span className="font-black">₹{totalAmount}</span>
           </button>
@@ -205,47 +203,37 @@ export default function MenuPage() {
   )
 }
 
-function MenuCard({
-  item, qty, fullWidth, onAdd, onRemove,
-}: {
+function MenuCard({ item, qty, fullWidth, onAdd, onRemove }: {
   item: MenuItem
   qty: number
   fullWidth: boolean
   onAdd: () => void
   onRemove: () => void
 }) {
-  const grad = getGradient(item.category)
+  const grad = getGradient(item.categories ?? [])
+  const icon = getIcon(item.categories ?? [])
 
   return (
     <div className={`bg-zinc-900 rounded-4xl overflow-hidden border border-zinc-800 flex flex-col animate-slide-up ${fullWidth ? 'col-span-2' : ''}`}>
       <div className={`bg-linear-to-br ${grad} ${fullWidth ? 'h-40' : 'h-28'} flex items-center justify-center relative`}>
-        <span className="text-4xl">{CAT_ICON[item.category] ?? '🍴'}</span>
+        <span className="text-4xl">{icon}</span>
         <div className="absolute inset-0 bg-linear-to-t from-zinc-900/60 to-transparent" />
       </div>
       <div className="p-3.5 flex-1 flex flex-col justify-between">
         <div>
           <p className="font-semibold text-white text-sm leading-tight">{item.name}</p>
-          <p className="text-xs text-zinc-500 mt-0.5">{item.category}</p>
+          <p className="text-xs text-zinc-500 mt-0.5">{(item.categories ?? []).join(', ')}</p>
         </div>
         <div className="flex items-center justify-between mt-3">
           <span className="font-bold text-white">₹{item.price}</span>
           {qty > 0 ? (
             <div className="flex items-center gap-2 bg-zinc-800 border border-lime-400/50 rounded-full px-2.5 py-1">
-              <button
-                onClick={onRemove}
-                className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform"
-              >−</button>
+              <button onClick={onRemove} className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform">−</button>
               <span className="text-white font-bold text-sm tabular-nums w-4 text-center">{qty}</span>
-              <button
-                onClick={onAdd}
-                className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform"
-              >+</button>
+              <button onClick={onAdd} className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform">+</button>
             </div>
           ) : (
-            <button
-              onClick={onAdd}
-              className="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition-all duration-200 border border-zinc-700"
-            >+</button>
+            <button onClick={onAdd} className="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition-all duration-200 border border-zinc-700">+</button>
           )}
         </div>
       </div>

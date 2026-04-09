@@ -17,7 +17,7 @@ export const addMenuItem = async (
 export const editMenuItem = async (
   vendorId: string,
   itemId: string,
-  data: { name?: string; price?: number; category?: string; image_url?: string; is_available?: boolean }
+  data: { name?: string; price?: number; categories?: string[]; image_url?: string; is_available?: boolean }
 ) => {
   const item = await menuRepo.getMenuItemById(itemId)
   if (!item) throw new Error('Item not found')
