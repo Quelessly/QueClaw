@@ -210,27 +210,29 @@ function DashboardShell({
 
     let socket: ReturnType<typeof getSocket> | null = null
 
-    try {
-      socket = getSocket()
-      if (vendor?.id) socket.emit('join_vendor', vendor.id)
+  try {
+  socket = getSocket()
+  if (socket) {
+    if (vendor?.id) socket.emit('join_vendor', vendor.id)
 
-      socket.on('new_order', (data: Order) => {
-        setOrders((prev) => [data, ...prev])
-        setNewOrderIds((prev) => new Set([...prev, data.id]))
-        toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
-        setTimeout(() => setNewOrderIds((prev) => {
-          const next = new Set(prev); next.delete(data.id); return next
-        }), 5000)
-      })
+    socket.on('new_order', (data: Order) => {
+      setOrders((prev) => [data, ...prev])
+      setNewOrderIds((prev) => new Set([...prev, data.id]))
+      toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
+      setTimeout(() => setNewOrderIds((prev) => {
+        const next = new Set(prev); next.delete(data.id); return next
+      }), 5000)
+    })
 
-      socket.on('order_updated', (data: { order_id: string; status: string }) => {
-        setOrders((prev) => prev.map((o) =>
-          o.id === data.order_id ? { ...o, status: data.status } : o
-        ))
-      })
-    } catch (err) {
-      console.error('Socket init failed:', err)
-    }
+    socket.on('order_updated', (data: { order_id: string; status: string }) => {
+      setOrders((prev) => prev.map((o) =>
+        o.id === data.order_id ? { ...o, status: data.status } : o
+      ))
+    })
+  }
+} catch (err) {
+  console.error('Socket init failed:', err)
+}
 
     return () => {
       if (socket) {

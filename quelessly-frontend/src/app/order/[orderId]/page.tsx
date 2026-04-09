@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { getSocket } from '@/lib/socket'
@@ -78,21 +78,23 @@ export default function OrderPage() {
 
     try {
       socket = getSocket()
-      socket.emit('join_order', orderId)
+      if (socket) {
+        socket.emit('join_order', orderId)
 
-      socket.on('order_status_updated', (data: { order_id: string; status: string }) => {
-        if (data.order_id === orderId) {
-          setOrder((prev) => prev ? { ...prev, status: data.status } : prev)
-          triggerPulse()
-        }
-      })
+        socket.on('order_status_updated', (data: { order_id: string; status: string }) => {
+          if (data.order_id === orderId) {
+            setOrder((prev) => prev ? { ...prev, status: data.status } : prev)
+            triggerPulse()
+          }
+        })
 
-      socket.on('payment_success', (data: { order_id: string }) => {
-        if (data.order_id === orderId) {
-          setOrder((prev) => prev ? { ...prev, status: 'paid', payment_status: 'captured' } : prev)
-          triggerPulse()
-        }
-      })
+        socket.on('payment_success', (data: { order_id: string }) => {
+          if (data.order_id === orderId) {
+            setOrder((prev) => prev ? { ...prev, status: 'paid', payment_status: 'captured' } : prev)
+            triggerPulse()
+          }
+        })
+      }
     } catch (err) {
       console.error('Socket init failed on order page:', err)
     }
