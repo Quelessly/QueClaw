@@ -10,21 +10,18 @@ function generateOTP(): string {
 }
 
 export async function inviteVendor(email: string, phone: string, name: string) {
-  // Check if vendor already exists
   const existing = await prisma.vendor.findUnique({ where: { email } })
   if (existing) throw new Error('A vendor with this email already exists')
 
   const otp = generateOTP()
-  const expires_at = new Date(Date.now() + 15 * 60 * 1000) // 15 minutes
+  const expires_at = new Date(Date.now() + 15 * 60 * 1000)
 
-  // Upsert invite (allow resending OTP)
   await prisma.vendorInvite.upsert({
     where: { email },
     update: { otp, phone, expires_at, verified: false },
     create: { email, phone, otp, expires_at },
   })
 
-  // Send OTP email via Resend
   await resend.emails.send({
     from: 'Quelessly <onboarding@resend.dev>',
     to: email,
@@ -46,7 +43,7 @@ export async function inviteVendor(email: string, phone: string, name: string) {
     `,
   })
 
-  console.log(`[admin] OTP sent to ${email} — OTP: ${otp}`) // dev convenience
+  console.log(`[admin] OTP sent to ${email} — OTP: ${otp}`)
 }
 
 export async function verifyAndCreateVendor(email: string, otp: string, password: string) {
@@ -59,11 +56,10 @@ export async function verifyAndCreateVendor(email: string, otp: string, password
 
   const password_hash = await bcrypt.hash(password, 12)
 
-  // Create vendor + mark invite as used in a transaction
   const vendor = await prisma.$transaction(async (tx) => {
     const v = await tx.vendor.create({
       data: {
-        name: email.split('@')[0], // fallback name, can be updated later
+        name: email.split('@')[0],
         email,
         password_hash,
       },
@@ -76,5 +72,87 @@ export async function verifyAndCreateVendor(email: string, otp: string, password
     return v
   })
 
+  return vendor
+}
+
+export async function getSettlements(date: string) {
+  const vendors = await prisma.vendor.findMany({
+    select: { id: true, name: true, email: true, upi_id: true },
+  })
+
+  const startOfDay = new Date(`${date}T00:00:00.000Z`)
+  const endOfDay = new Date(`${date}T23:59:59.999Z`)
+
+  const results = await Promise.all(
+    vendors.map(async (vendor) => {
+      const orders = await prisma.order.findMany({
+        where: {
+          vendor_id: vendor.id,
+          status: 'completed',
+          created_at: { gte: startOfDay, lte: endOfDay },
+        },
+        select: { id: true, total_amount: true },
+      })
+
+      const grossAmount = orders.reduce(
+        (sum, o) => sum + Number(o.total_amount), 0
+      )
+
+      const settlement = await prisma.vendorSettlement.findUnique({
+        where: { vendor_id_date: { vendor_id: vendor.id, date: new Date(date) } },
+      })
+
+      return {
+        vendor,
+        totalOrders: orders.length,
+        grossAmount,
+        settled: settlement?.payout_status === 'done',
+        settlementId: settlement?.id ?? null,
+      }
+    })
+  )
+
+  return results
+}
+
+export async function markSettled(
+  vendorId: string,
+  date: string,
+  grossAmount: number,
+  totalOrders: number
+) {
+  const platformFee = 0
+  const netAmount = grossAmount - platformFee
+
+  const settlement = await prisma.vendorSettlement.upsert({
+    where: { vendor_id_date: { vendor_id: vendorId, date: new Date(date) } },
+    update: {
+      payout_status: 'done',
+      settled_at: new Date(),
+      gross_amount: grossAmount,
+      net_amount: netAmount,
+      total_orders: totalOrders,
+    },
+    create: {
+      vendor_id: vendorId,
+      date: new Date(date),
+      total_orders: totalOrders,
+      gross_amount: grossAmount,
+      platform_fee: platformFee,
+      net_amount: netAmount,
+      payout_status: 'done',
+      settled_at: new Date(),
+    },
+  })
+
+  return settlement
+}
+
+export async function updateVendorUpi(vendorId: string, upiId: string) {
+  const vendor = await prisma.vendor.update({
+    where: { id: vendorId },
+    data: { upi_id: upiId },
+    select: { id: true, name: true, email: true, upi_id: true },
+  })
   return vendor
 }

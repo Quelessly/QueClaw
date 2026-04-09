@@ -1,19 +1,18 @@
 'use client'
 
 import { useState } from 'react'
+import Link from 'next/link'
 
 const API = process.env.NEXT_PUBLIC_API_URL
 
 export default function AdminPage() {
   const [step, setStep] = useState<'invite' | 'verify' | 'done'>('invite')
 
-  // Step 1 fields
   const [adminSecret, setAdminSecret] = useState('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
 
-  // Step 2 fields
   const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
 
@@ -31,7 +30,6 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminSecret, name, email, phone }),
       }).then(r => r.json())
-
       if (res.success) {
         setStep('verify')
       } else {
@@ -54,7 +52,6 @@ export default function AdminPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminSecret, email, otp, password }),
       }).then(r => r.json())
-
       if (res.success) {
         setCreatedVendor(res.data)
         setStep('done')
@@ -79,7 +76,6 @@ export default function AdminPage() {
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-5">
       <div className="w-full max-w-sm">
 
-        {/* Header */}
         <div className="text-center mb-8">
           <div className="w-14 h-14 bg-lime-400 rounded-3xl mx-auto mb-4 flex items-center justify-center">
             <span className="text-black font-black text-2xl">Q</span>
@@ -88,7 +84,6 @@ export default function AdminPage() {
           <p className="text-zinc-600 text-xs mt-1">Vendor onboarding</p>
         </div>
 
-        {/* Step indicators */}
         <div className="flex items-center gap-2 mb-6">
           {['Send OTP', 'Verify & Create', 'Done'].map((label, i) => {
             const stepIndex = step === 'invite' ? 0 : step === 'verify' ? 1 : 2
@@ -111,7 +106,6 @@ export default function AdminPage() {
 
         <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
 
-          {/* ── Step 1: Send OTP ── */}
           {step === 'invite' && (
             <form onSubmit={handleInvite} className="space-y-3">
               <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">New Vendor Details</p>
@@ -148,7 +142,6 @@ export default function AdminPage() {
             </form>
           )}
 
-          {/* ── Step 2: Verify OTP ── */}
           {step === 'verify' && (
             <form onSubmit={handleVerify} className="space-y-3">
               <div className="bg-zinc-800 rounded-xl px-4 py-3 mb-4">
@@ -189,7 +182,6 @@ export default function AdminPage() {
             </form>
           )}
 
-          {/* ── Step 3: Done ── */}
           {step === 'done' && createdVendor && (
             <div className="text-center space-y-4">
               <div className="w-14 h-14 bg-lime-400/10 border border-lime-400/30 rounded-full flex items-center justify-center mx-auto text-2xl">
@@ -223,9 +215,15 @@ export default function AdminPage() {
           )}
         </div>
 
-        <p className="text-center text-zinc-800 text-xs mt-6">
-          quelessly admin · internal use only
-        </p>
+        <div className="text-center mt-6 space-y-2">
+          <Link
+            href="/admin/settlements"
+            className="block text-zinc-600 text-xs hover:text-lime-400 transition-colors"
+          >
+            View Settlements →
+          </Link>
+          <p className="text-zinc-800 text-xs">quelessly admin · internal use only</p>
+        </div>
       </div>
     </div>
   )
