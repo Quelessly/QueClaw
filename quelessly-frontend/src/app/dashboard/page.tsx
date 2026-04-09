@@ -208,8 +208,36 @@ function DashboardShell({
       .then((res) => { if (res.success) setOrders(res.data) })
       .finally(() => setOrdersLoading(false))
 
-    const socket = getSocket()
-    if (vendor?.id) socket.emit('join_vendor', vendor.id)
+    try {
+      const socket = getSocket()
+      if (vendor?.id) socket.emit('join_vendor', vendor.id)
+
+        socket.on('new_order', (data: Order) => {
+          setOrders((prev) => [data, ...prev])
+          setNewOrderIds((prev) => new Set([...prev, data.id]))
+          toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
+          setTimeout(() => setNewOrderIds((prev) => {
+            const next = new Set(prev); next.delete(data.id); return next
+          }) , 5000)
+        })
+        socket.on('order_updated', (data: { order_id: string; status: string }) => {
+          setOrders((prev) => prev.map((o) =>
+            o.id === data.order_id ? { ...o, status: data.status } : o
+        ))
+      })
+
+      return () => {
+        try {
+          const s = getSocket()
+          s.off('new_order')
+          s.off('order_updated')
+          } catch {}
+      }
+      } catch (err) {
+        console.error('Socket init failed:', err)
+      }  
+    }
+    
 
     socket.on('new_order', (data: Order) => {
       setOrders((prev) => [data, ...prev])
