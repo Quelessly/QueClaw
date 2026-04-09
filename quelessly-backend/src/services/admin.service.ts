@@ -28,7 +28,7 @@ export async function inviteVendor(
   })
 
   await resend.emails.send({
-    from: 'Quelessly <onboarding@resend.dev>',
+    from: 'Quelessly <noreply@quelessly.com>',
     to: email,
     subject: 'Your Quelessly Vendor OTP',
     html: `
