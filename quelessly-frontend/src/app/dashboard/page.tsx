@@ -208,53 +208,36 @@ function DashboardShell({
       .then((res) => { if (res.success) setOrders(res.data) })
       .finally(() => setOrdersLoading(false))
 
+    let socket: ReturnType<typeof getSocket> | null = null
+
     try {
-      const socket = getSocket()
+      socket = getSocket()
       if (vendor?.id) socket.emit('join_vendor', vendor.id)
 
-        socket.on('new_order', (data: Order) => {
-          setOrders((prev) => [data, ...prev])
-          setNewOrderIds((prev) => new Set([...prev, data.id]))
-          toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
-          setTimeout(() => setNewOrderIds((prev) => {
-            const next = new Set(prev); next.delete(data.id); return next
-          }) , 5000)
-        })
-        socket.on('order_updated', (data: { order_id: string; status: string }) => {
-          setOrders((prev) => prev.map((o) =>
-            o.id === data.order_id ? { ...o, status: data.status } : o
-        ))
+      socket.on('new_order', (data: Order) => {
+        setOrders((prev) => [data, ...prev])
+        setNewOrderIds((prev) => new Set([...prev, data.id]))
+        toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
+        setTimeout(() => setNewOrderIds((prev) => {
+          const next = new Set(prev); next.delete(data.id); return next
+        }), 5000)
       })
 
-      return () => {
-        try {
-          const s = getSocket()
-          s.off('new_order')
-          s.off('order_updated')
-          } catch {}
-      }
-      } catch (err) {
-        console.error('Socket init failed:', err)
-      }  
+      socket.on('order_updated', (data: { order_id: string; status: string }) => {
+        setOrders((prev) => prev.map((o) =>
+          o.id === data.order_id ? { ...o, status: data.status } : o
+        ))
+      })
+    } catch (err) {
+      console.error('Socket init failed:', err)
     }
-    
 
-    socket.on('new_order', (data: Order) => {
-      setOrders((prev) => [data, ...prev])
-      setNewOrderIds((prev) => new Set([...prev, data.id]))
-      toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
-      setTimeout(() => setNewOrderIds((prev) => {
-        const next = new Set(prev); next.delete(data.id); return next
-      }), 5000)
-    })
-
-    socket.on('order_updated', (data: { order_id: string; status: string }) => {
-      setOrders((prev) => prev.map((o) =>
-        o.id === data.order_id ? { ...o, status: data.status } : o
-      ))
-    })
-
-    return () => { socket.off('new_order'); socket.off('order_updated') }
+    return () => {
+      if (socket) {
+        socket.off('new_order')
+        socket.off('order_updated')
+      }
+    }
   }, [token, vendor?.id])
 
   const updateStatus = async (orderId: string, newStatus: string) => {
@@ -336,7 +319,6 @@ function DashboardShell({
               <span className="text-xs text-zinc-500">Live</span>
             </div>
           )}
-          {/* Mobile logout */}
           <button onClick={onLogout} className="md:hidden text-zinc-600 text-xs border border-zinc-800 px-3 py-1.5 rounded-full hover:text-zinc-300 transition-colors">
             Logout
           </button>
@@ -412,7 +394,6 @@ function OrdersTab({
 
   return (
     <div className="space-y-6">
-      {/* Active */}
       <section>
         {activeOrders.length === 0 ? (
           <div className="glass rounded-4xl p-12 text-center">
@@ -435,7 +416,6 @@ function OrdersTab({
         )}
       </section>
 
-      {/* Past */}
       {pastOrders.length > 0 && (
         <section>
           <p className="text-xs font-bold text-zinc-700 uppercase tracking-widest mb-3">Past Orders</p>
@@ -491,7 +471,6 @@ function OrderCard({
       )}
 
       <div className="p-5">
-        {/* Header */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <p className="font-display font-bold text-white text-lg tracking-tighter">
@@ -504,7 +483,6 @@ function OrderCard({
           </span>
         </div>
 
-        {/* Items block — dense monospace */}
         <div className="bg-zinc-800/50 rounded-xl p-3 mb-4 font-mono text-sm space-y-0.5">
           {order.order_items?.map((item) => (
             <div key={item.id} className="flex justify-between">
@@ -520,7 +498,6 @@ function OrderCard({
           </div>
         </div>
 
-        {/* Action button */}
         {action && (
           <button
             onClick={() => onUpdate(order.id, next!)}
@@ -596,7 +573,6 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
 
   return (
     <div className="pb-24 md:pb-4 space-y-4">
-      {/* Add form */}
       {showForm && (
         <MenuItemForm
           token={token}
@@ -637,7 +613,6 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
         ))
       )}
 
-      {/* FAB */}
       <button
         onClick={() => { setEditItem(null); setShowForm(!showForm) }}
         className={`fixed bottom-24 md:bottom-8 right-5 w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg active:scale-90 transition-all duration-200 z-30 ${
@@ -726,21 +701,12 @@ function MenuItemRow({
     <div className={`bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-opacity ${!item.is_available ? 'opacity-50' : ''}`}>
       <div className="flex-1 min-w-0">
         <p className="font-semibold text-sm">
-          <InlineField
-            value={item.name}
-            onSave={(v) => onInlineEdit(item, 'name', v)}
-          />
+          <InlineField value={item.name} onSave={(v) => onInlineEdit(item, 'name', v)} />
         </p>
         <p className="text-sm mt-0.5 text-zinc-400 font-mono">
-          <InlineField
-            value={item.price}
-            type="number"
-            prefix="₹"
-            onSave={(v) => onInlineEdit(item, 'price', v)}
-          />
+          <InlineField value={item.price} type="number" prefix="₹" onSave={(v) => onInlineEdit(item, 'price', v)} />
         </p>
       </div>
-
       <div className="flex items-center gap-2 shrink-0">
         <Toggle checked={item.is_available} onChange={() => onToggle(item)} />
         <button
@@ -870,7 +836,6 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
 
   return (
     <div className="max-w-sm mx-auto space-y-4">
-      {/* QR card */}
       <div className="glass rounded-4xl p-8 flex flex-col items-center gap-5">
         <div className="text-center">
           <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Scan to Order</p>
@@ -878,8 +843,6 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
             {vendorName ?? 'your menu'}
           </p>
         </div>
-
-        {/* QR */}
         <div ref={qrRef} className="p-5 bg-white rounded-3xl shadow-[0_0_40px_rgba(163,230,53,0.15)]">
           <QRCodeSVG
             value={menuUrl}
@@ -890,11 +853,9 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
             includeMargin={false}
           />
         </div>
-
         <p className="text-xs text-zinc-600 font-mono break-all text-center px-2">{menuUrl}</p>
       </div>
 
-      {/* Actions */}
       <div className="grid grid-cols-2 gap-3">
         <button
           onClick={downloadSVG}
@@ -910,7 +871,6 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
         </button>
       </div>
 
-      {/* How-to */}
       <div className="glass rounded-3xl p-5 space-y-3">
         <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">How it works</p>
         <div className="space-y-2.5">
