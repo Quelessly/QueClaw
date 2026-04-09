@@ -3,10 +3,9 @@ import { AuthRequest } from '../middlewares/auth.middleware'
 import * as menuService from '../services/menu.service'
 import { sendSuccess, sendError } from '../utils/apiResponse'
 
-// Public — no auth needed
 export const getPublicMenu = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const { vendorId } = req.params
+    const vendorId = req.params.vendorId as string
     const items = await menuService.getPublicMenu(vendorId)
     sendSuccess(res, items)
   } catch (err: any) {
@@ -14,7 +13,6 @@ export const getPublicMenu = async (req: AuthRequest, res: Response, next: NextF
   }
 }
 
-// Vendor dashboard — auth required
 export const getVendorMenu = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const items = await menuService.getVendorMenu(req.vendorId!)
@@ -35,7 +33,8 @@ export const addMenuItem = async (req: AuthRequest, res: Response, next: NextFun
 
 export const editMenuItem = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const item = await menuService.editMenuItem(req.vendorId!, req.params.itemId, req.body)
+    const itemId = req.params.itemId as string
+    const item = await menuService.editMenuItem(req.vendorId!, itemId, req.body)
     sendSuccess(res, item)
   } catch (err: any) {
     sendError(res, err.message)
@@ -44,7 +43,8 @@ export const editMenuItem = async (req: AuthRequest, res: Response, next: NextFu
 
 export const removeMenuItem = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    await menuService.removeMenuItem(req.vendorId!, req.params.itemId)
+    const itemId = req.params.itemId as string
+    await menuService.removeMenuItem(req.vendorId!, itemId)
     sendSuccess(res, { message: 'Item deleted' })
   } catch (err: any) {
     sendError(res, err.message)

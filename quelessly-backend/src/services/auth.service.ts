@@ -1,4 +1,4 @@
-import bcrypt from 'bcrypt'
+import bcrypt from 'bcryptjs'
 import jwt from 'jsonwebtoken'
 import { env } from '../config/env'
 import * as vendorRepo from '../repositories/vendor.repository'
@@ -20,9 +20,11 @@ export const login = async (email: string, password: string) => {
   const valid = await bcrypt.compare(password, vendor.password_hash)
   if (!valid) throw new Error('Invalid credentials')
 
-  const token = jwt.sign({ vendorId: vendor.id }, env.JWT_SECRET, {
-    expiresIn: env.JWT_EXPIRES_IN,
-  })
+  const token = jwt.sign(
+    { vendorId: vendor.id },
+    env.JWT_SECRET as string,
+    { expiresIn: '7d' }
+  )
 
   return { token, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } }
 }
