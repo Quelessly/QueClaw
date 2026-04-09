@@ -8,9 +8,11 @@ export const getVendorMenu = (vendorId: string) =>
 
 export const addMenuItem = async (
   vendorId: string,
-  data: { name: string; price: number; category: string; image_url?: string }
+  data: { name: string; price: number; categories: string[]; image_url?: string }
 ) => {
   if (data.price <= 0) throw new Error('Price must be greater than 0')
+  if (!data.categories || data.categories.length === 0)
+    throw new Error('At least one category is required')
   return menuRepo.createMenuItem({ ...data, vendor_id: vendorId })
 }
 
@@ -22,6 +24,8 @@ export const editMenuItem = async (
   const item = await menuRepo.getMenuItemById(itemId)
   if (!item) throw new Error('Item not found')
   if (item.vendor_id !== vendorId) throw new Error('Unauthorized')
+  if (data.categories !== undefined && data.categories.length === 0)
+    throw new Error('At least one category is required')
   return menuRepo.updateMenuItem(itemId, data)
 }
 
