@@ -78,10 +78,11 @@ export const verifyAndCapture = async (
   // Notify vendor of new paid order
   try {
     const io = getIO()
-    io.to(`vendor_${order?.vendor_id}`).emit('new_order', {
-      order_id: payment.order_id,
-      amount: payment.amount,
-    })
+
+    // Fetch full order with items so vendor dashboard renders correctly
+    const fullOrder = await orderRepo.getOrderById(payment.order_id)
+
+    io.to(`vendor_${order?.vendor_id}`).emit('new_order', fullOrder)
 
     // Notify student their payment went through
     io.to(`order_${payment.order_id}`).emit('payment_success', {

@@ -216,6 +216,7 @@ function DashboardShell({
     if (vendor?.id) socket.emit('join_vendor', vendor.id)
 
     socket.on('new_order', (data: Order) => {
+      if (!data?.id) return
       setOrders((prev) => [data, ...prev])
       setNewOrderIds((prev) => new Set([...prev, data.id]))
       toast(`New order #${data.id.slice(0, 8).toUpperCase()}!`, 'info')
@@ -225,6 +226,7 @@ function DashboardShell({
     })
 
     socket.on('order_updated', (data: { order_id: string; status: string }) => {
+      if (!data?.order_id) return
       setOrders((prev) => prev.map((o) =>
         o.id === data.order_id ? { ...o, status: data.status } : o
       ))
