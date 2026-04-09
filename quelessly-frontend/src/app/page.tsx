@@ -122,7 +122,6 @@ export default function HomePage() {
           .hero-btns{flex-direction:column;} .hero-btns button{width:100%;justify-content:center;}
           .steps-grid{grid-template-columns:1fr!important;} .feat-grid{grid-template-columns:1fr!important;}
           .footer-row{flex-direction:column!important;align-items:flex-start!important;gap:16px!important;}
-          .hide-mob{display:none!important;} .show-mob{display:flex!important;}
           .big-h{font-size:36px!important;letter-spacing:-1.5px!important;}
           .owners-head{flex-direction:column!important;align-items:flex-start!important;}
         }
@@ -140,13 +139,7 @@ export default function HomePage() {
         <span style={{ fontWeight:800, fontSize:18, letterSpacing:'-0.5px' }}>
           quelessly<span style={{ color:'var(--lime)' }}>.</span>
         </span>
-        <div style={{ display:'flex', gap:8, alignItems:'center' }}>
-          {/* Desktop: vendor login + scan */}
-          <Link href="/dashboard" className="btn-ghost hide-mob" style={{ padding:'7px 16px', fontSize:13 }}>Vendor login</Link>
-          <button onClick={() => setScannerOpen(true)} className="btn-lime hide-mob" style={{ padding:'7px 18px', fontSize:13 }}>📷 Scan & Order</button>
-          {/* Mobile: vendor login only */}
-          <Link href="/dashboard" className="btn-ghost show-mob" style={{ padding:'7px 16px', fontSize:13, display:'none' }}>Vendor login</Link>
-        </div>
+        <Link href="/dashboard" className="btn-ghost" style={{ padding:'7px 16px', fontSize:13 }}>Vendor login</Link>
       </nav>
 
       {/* ACTIVE ORDER BANNER */}
