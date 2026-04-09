@@ -95,29 +95,54 @@ export async function getSettlements(date: string) {
 
   const results = await Promise.all(
     vendors.map(async (vendor) => {
-      const orders = await prisma.order.findMany({
-        where: {
-          vendor_id: vendor.id,
-          status: 'completed',
-          created_at: { gte: startOfDay, lte: endOfDay },
-        },
-        select: { id: true, total_amount: true },
-      })
-
-      const grossAmount = orders.reduce(
-        (sum, o) => sum + Number(o.total_amount), 0
-      )
-
       const settlement = await prisma.vendorSettlement.findUnique({
         where: { vendor_id_date: { vendor_id: vendor.id, date: new Date(date) } },
       })
 
+      const isSettled = settlement?.payout_status === 'done'
+      const settledAt = settlement?.settled_at ?? null
+
+      // Orders that were included in the settlement (or all orders if not yet settled)
+      const settledOrders = await prisma.order.findMany({
+        where: {
+          vendor_id: vendor.id,
+          status: 'completed',
+          created_at: {
+            gte: startOfDay,
+            lte: isSettled && settledAt ? settledAt : endOfDay,
+          },
+        },
+        select: { id: true, total_amount: true },
+      })
+
+      // New orders placed AFTER the settlement was marked — these are unpaid
+      const pendingAfterSettlementOrders = isSettled && settledAt
+        ? await prisma.order.findMany({
+            where: {
+              vendor_id: vendor.id,
+              status: 'completed',
+              created_at: { gt: settledAt, lte: endOfDay },
+            },
+            select: { id: true, total_amount: true },
+          })
+        : []
+
+      const grossAmount = settledOrders.reduce(
+        (sum, o) => sum + Number(o.total_amount), 0
+      )
+
+      const pendingAmountAfterSettlement = pendingAfterSettlementOrders.reduce(
+        (sum, o) => sum + Number(o.total_amount), 0
+      )
+
       return {
         vendor,
-        totalOrders: orders.length,
+        totalOrders: settledOrders.length,
         grossAmount,
-        settled: settlement?.payout_status === 'done',
+        settled: isSettled,
         settlementId: settlement?.id ?? null,
+        pendingAfterSettlement: pendingAfterSettlementOrders.length,
+        pendingAmountAfterSettlement,
       }
     })
   )
