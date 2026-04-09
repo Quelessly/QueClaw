@@ -9,7 +9,12 @@ function generateOTP(): string {
   return Math.floor(100000 + Math.random() * 900000).toString()
 }
 
-export async function inviteVendor(email: string, phone: string, name: string) {
+export async function inviteVendor(
+  email: string,
+  phone: string,
+  name: string,
+  upiId?: string
+) {
   const existing = await prisma.vendor.findUnique({ where: { email } })
   if (existing) throw new Error('A vendor with this email already exists')
 
@@ -18,8 +23,8 @@ export async function inviteVendor(email: string, phone: string, name: string) {
 
   await prisma.vendorInvite.upsert({
     where: { email },
-    update: { otp, phone, expires_at, verified: false },
-    create: { email, phone, otp, expires_at },
+    update: { otp, phone, name, upi_id: upiId ?? null, expires_at, verified: false },
+    create: { email, phone, name, otp, upi_id: upiId ?? null, expires_at },
   })
 
   await resend.emails.send({
@@ -46,7 +51,11 @@ export async function inviteVendor(email: string, phone: string, name: string) {
   console.log(`[admin] OTP sent to ${email} — OTP: ${otp}`)
 }
 
-export async function verifyAndCreateVendor(email: string, otp: string, password: string) {
+export async function verifyAndCreateVendor(
+  email: string,
+  otp: string,
+  password: string
+) {
   const invite = await prisma.vendorInvite.findUnique({ where: { email } })
 
   if (!invite) throw new Error('No invite found for this email')
@@ -59,11 +68,12 @@ export async function verifyAndCreateVendor(email: string, otp: string, password
   const vendor = await prisma.$transaction(async (tx) => {
     const v = await tx.vendor.create({
       data: {
-        name: email.split('@')[0],
+        name: invite.name || email.split('@')[0],
         email,
         password_hash,
+        upi_id: invite.upi_id ?? null,
       },
-      select: { id: true, name: true, email: true, created_at: true },
+      select: { id: true, name: true, email: true, upi_id: true, created_at: true },
     })
     await tx.vendorInvite.update({
       where: { email },

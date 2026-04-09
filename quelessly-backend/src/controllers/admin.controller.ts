@@ -2,22 +2,12 @@ import { Request, Response, NextFunction } from 'express'
 import * as adminService from '../services/admin.service'
 import { sendSuccess, sendError } from '../utils/apiResponse'
 
-const checkAdmin = (req: Request, res: Response): boolean => {
-  if (req.body.adminSecret !== process.env.ADMIN_SECRET &&
-      req.query.adminSecret !== process.env.ADMIN_SECRET &&
-      req.headers['x-admin-secret'] !== process.env.ADMIN_SECRET) {
-    sendError(res, 'Unauthorized', 401)
-    return false
-  }
-  return true
-}
-
 export const inviteVendor = async (req: Request, res: Response, next: NextFunction) => {
   try {
-    const { adminSecret, email, phone, name } = req.body
+    const { adminSecret, email, phone, name, upiId } = req.body
     if (adminSecret !== process.env.ADMIN_SECRET) return sendError(res, 'Unauthorized', 401)
     if (!email || !phone || !name) return sendError(res, 'name, email and phone are required', 400)
-    await adminService.inviteVendor(email, phone, name)
+    await adminService.inviteVendor(email, phone, name, upiId)
     sendSuccess(res, { message: 'OTP sent to vendor email' }, 200)
   } catch (err: any) {
     sendError(res, err.message)

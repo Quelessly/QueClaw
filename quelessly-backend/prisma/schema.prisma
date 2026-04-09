@@ -112,6 +112,8 @@ model VendorInvite {
   email      String   @unique
   phone      String
   otp        String
+  name       String   @default("")
+  upi_id     String?
   expires_at DateTime
   verified   Boolean  @default(false)
   created_at DateTime @default(now())

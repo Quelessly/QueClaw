@@ -12,6 +12,7 @@ export default function AdminPage() {
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [upiId, setUpiId] = useState('')
 
   const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
@@ -28,7 +29,7 @@ export default function AdminPage() {
       const res = await fetch(`${API}/admin/invite-vendor`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ adminSecret, name, email, phone }),
+        body: JSON.stringify({ adminSecret, name, email, phone, upiId: upiId || undefined }),
       }).then(r => r.json())
       if (res.success) {
         setStep('verify')
@@ -67,7 +68,7 @@ export default function AdminPage() {
 
   const reset = () => {
     setStep('invite')
-    setName(''); setEmail(''); setPhone('')
+    setName(''); setEmail(''); setPhone(''); setUpiId('')
     setOtp(''); setPassword(''); setError('')
     setCreatedVendor(null)
   }
@@ -110,11 +111,11 @@ export default function AdminPage() {
             <form onSubmit={handleInvite} className="space-y-3">
               <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">New Vendor Details</p>
               {[
-                { label: 'Admin Secret', value: adminSecret, set: setAdminSecret, type: 'password', placeholder: '••••••••' },
-                { label: 'Vendor Name', value: name, set: setName, type: 'text', placeholder: 'The Canteen' },
-                { label: 'Vendor Email', value: email, set: setEmail, type: 'email', placeholder: 'vendor@college.com' },
-                { label: 'Phone Number', value: phone, set: setPhone, type: 'tel', placeholder: '+91 98765 43210' },
-              ].map(({ label, value, set, type, placeholder }) => (
+                { label: 'Admin Secret', value: adminSecret, set: setAdminSecret, type: 'password', placeholder: '••••••••', required: true },
+                { label: 'Vendor Name', value: name, set: setName, type: 'text', placeholder: 'The Canteen', required: true },
+                { label: 'Vendor Email', value: email, set: setEmail, type: 'email', placeholder: 'vendor@college.com', required: true },
+                { label: 'Phone Number', value: phone, set: setPhone, type: 'tel', placeholder: '+91 98765 43210', required: true },
+              ].map(({ label, value, set, type, placeholder, required }) => (
                 <div key={label}>
                   <label className="block text-xs font-bold text-zinc-600 uppercase tracking-widest mb-1.5">
                     {label}
@@ -123,12 +124,24 @@ export default function AdminPage() {
                     type={type}
                     value={value}
                     onChange={e => set(e.target.value)}
-                    required
+                    required={required}
                     placeholder={placeholder}
                     className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
                   />
                 </div>
               ))}
+              <div>
+                <label className="block text-xs font-bold text-zinc-600 uppercase tracking-widest mb-1.5">
+                  UPI ID <span className="text-zinc-700 normal-case font-normal">(optional)</span>
+                </label>
+                <input
+                  type="text"
+                  value={upiId}
+                  onChange={e => setUpiId(e.target.value)}
+                  placeholder="vendor@upi"
+                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
+                />
+              </div>
               {error && <p className="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">{error}</p>}
               <button
                 type="submit"
@@ -201,6 +214,10 @@ export default function AdminPage() {
                   <p className="text-white text-sm font-mono">{createdVendor.email}</p>
                 </div>
                 <div>
+                  <p className="text-zinc-600 text-[10px] uppercase tracking-widest">UPI ID</p>
+                  <p className="text-white text-sm font-mono">{createdVendor.upi_id ?? '—'}</p>
+                </div>
+                <div>
                   <p className="text-zinc-600 text-[10px] uppercase tracking-widest">Vendor ID</p>
                   <p className="text-white text-sm font-mono">{createdVendor.id}</p>
                 </div>
@@ -216,10 +233,7 @@ export default function AdminPage() {
         </div>
 
         <div className="text-center mt-6 space-y-2">
-          <Link
-            href="/admin/settlements"
-            className="block text-zinc-600 text-xs hover:text-lime-400 transition-colors"
-          >
+          <Link href="/admin/settlements" className="block text-zinc-600 text-xs hover:text-lime-400 transition-colors">
             View Settlements →
           </Link>
           <p className="text-zinc-800 text-xs">quelessly admin · internal use only</p>
