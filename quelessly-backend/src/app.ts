@@ -9,7 +9,12 @@ import adminRoutes from './routes/admin.routes'
 const app = express()
 
 app.use(cors({
-  origin: 'http://localhost:3000',
+  origin: [
+    'http://localhost:3000',
+    'https://quelessly.com',
+    'https://www.quelessly.com',
+    'https://que-claw.vercel.app',
+  ],
   credentials: true,
 }))
 app.use(express.json())
