@@ -27,9 +27,7 @@ function PulsingRing() {
   return (
     <div className="relative w-52 h-52 mx-auto">
       <svg className="w-full h-full" viewBox="0 0 100 100">
-        {/* Track */}
         <circle cx="50" cy="50" r="44" fill="none" stroke="#27272a" strokeWidth="4" />
-        {/* Spinner arc */}
         <circle
           cx="50" cy="50" r="44"
           fill="none"
@@ -76,30 +74,37 @@ export default function OrderPage() {
       .then((res) => { if (res.success) setOrder(res.data) })
       .finally(() => setLoading(false))
 
-    const socket = getSocket()
-    socket.emit('join_order', orderId)
+    let socket: ReturnType<typeof getSocket> | null = null
 
-    socket.on('order_status_updated', (data: { order_id: string; status: string }) => {
-      if (data.order_id === orderId) {
-        setOrder((prev) => prev ? { ...prev, status: data.status } : prev)
-        triggerPulse()
-      }
-    })
+    try {
+      socket = getSocket()
+      socket.emit('join_order', orderId)
 
-    socket.on('payment_success', (data: { order_id: string }) => {
-      if (data.order_id === orderId) {
-        setOrder((prev) => prev ? { ...prev, status: 'paid', payment_status: 'captured' } : prev)
-        triggerPulse()
-      }
-    })
+      socket.on('order_status_updated', (data: { order_id: string; status: string }) => {
+        if (data.order_id === orderId) {
+          setOrder((prev) => prev ? { ...prev, status: data.status } : prev)
+          triggerPulse()
+        }
+      })
+
+      socket.on('payment_success', (data: { order_id: string }) => {
+        if (data.order_id === orderId) {
+          setOrder((prev) => prev ? { ...prev, status: 'paid', payment_status: 'captured' } : prev)
+          triggerPulse()
+        }
+      })
+    } catch (err) {
+      console.error('Socket init failed on order page:', err)
+    }
 
     return () => {
-      socket.off('order_status_updated')
-      socket.off('payment_success')
+      if (socket) {
+        socket.off('order_status_updated')
+        socket.off('payment_success')
+      }
     }
   }, [orderId])
 
-  // ── LOADING ──────────────────────────────────────────────────────────────────
   if (loading) return (
     <div className="min-h-screen bg-zinc-950 flex items-center justify-center">
       <div className="flex flex-col items-center gap-4">
@@ -119,7 +124,6 @@ export default function OrderPage() {
     </div>
   )
 
-  // ── READY STATE — full screen lime takeover ────────────────────────────────
   if (order.status === 'ready') return (
     <div className="fixed inset-0 bg-lime-400 flex flex-col items-center justify-center px-6 animate-ready-in z-50">
       <p className="text-black/50 text-xs font-bold uppercase tracking-[0.3em] mb-8">
@@ -132,8 +136,6 @@ export default function OrderPage() {
       <p className="text-black/60 text-base mt-8 text-center font-medium">
         Show this code at the counter
       </p>
-
-      {/* Order summary */}
       <div className="mt-10 bg-black/10 rounded-3xl p-5 w-full max-w-sm">
         <div className="space-y-1.5">
           {order.order_items?.map((item) => (
@@ -147,7 +149,6 @@ export default function OrderPage() {
     </div>
   )
 
-  // ── COMPLETED STATE ────────────────────────────────────────────────────────
   if (order.status === 'completed') return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6 gap-6 animate-fade-in">
       <div className="w-24 h-24 glass border border-white/10 rounded-full flex items-center justify-center">
@@ -172,7 +173,6 @@ export default function OrderPage() {
     </div>
   )
 
-  // ── CANCELLED ─────────────────────────────────────────────────────────────
   if (order.status === 'cancelled') return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6 gap-5">
       <span className="text-6xl">❌</span>
@@ -183,7 +183,6 @@ export default function OrderPage() {
     </div>
   )
 
-  // ── ACTIVE STATES: pending / paid / preparing ─────────────────────────────
   const currentStepIndex = STATUS_ORDER.indexOf(order.status)
   const isPreparing = order.status === 'preparing'
   const isPaid = order.status === 'paid'
@@ -191,8 +190,6 @@ export default function OrderPage() {
 
   return (
     <div className="min-h-screen bg-zinc-950 pb-8">
-
-      {/* Top bar */}
       <div className="px-5 pt-12 pb-6">
         <p className="text-zinc-600 text-xs font-mono uppercase tracking-widest mb-1">Order</p>
         <div className="flex items-center justify-between">
@@ -209,10 +206,8 @@ export default function OrderPage() {
       </div>
 
       <div className="px-4 space-y-4">
-        {/* Visual status block */}
         <div className={`glass rounded-4xl py-10 flex flex-col items-center gap-4 border transition-all duration-500 ${statusPulse ? 'border-lime-400/50 shadow-[0_0_30px_rgba(163,230,53,0.15)]' : 'border-white/8'}`}>
           {isPreparing ? <PulsingRing /> : <ConfirmedIcon />}
-
           <div className="text-center px-6">
             <p className="text-xl font-display font-bold text-white tracking-tighter mt-2">
               {isPending && 'Waiting for payment'}
@@ -227,7 +222,6 @@ export default function OrderPage() {
           </div>
         </div>
 
-        {/* Step progress */}
         <div className="glass rounded-3xl p-5">
           <div className="flex items-center">
             {[
@@ -243,9 +237,7 @@ export default function OrderPage() {
                 <div key={step.key} className="flex items-center flex-1 last:flex-none">
                   <div className="flex flex-col items-center gap-1.5">
                     <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
-                      done
-                        ? 'bg-lime-400 text-black'
-                        : 'bg-zinc-800 text-zinc-600'
+                      done ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-600'
                     } ${active ? 'ring-2 ring-lime-400/40 ring-offset-2 ring-offset-zinc-900' : ''}`}>
                       {done ? '✓' : i + 1}
                     </div>
@@ -264,7 +256,6 @@ export default function OrderPage() {
           </div>
         </div>
 
-        {/* Order items */}
         <div className="glass rounded-3xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-white/5">
             <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Your Items</p>
