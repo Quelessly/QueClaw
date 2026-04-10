@@ -6,7 +6,6 @@ import { api } from '@/lib/api'
 import { SkeletonMenuCard } from '@/components/Skeleton'
 import Footer from '@/components/Footer'
 
-
 interface MenuItem {
   id: string
   name: string
@@ -67,21 +66,6 @@ export default function MenuPage() {
   const [search, setSearch] = useState('')
   const [vendorName] = useState('the canteen.')
   const [activeOrder, setActiveOrder] = useState<{ orderId: string; total: number } | null>(null)
-  const [headerVisible, setHeaderVisible] = useState(true)
-  const lastScrollY = useRef(0)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const curr = window.scrollY
-      setHeaderVisible(curr < lastScrollY.current || curr < 60)
-      lastScrollY.current = curr
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-
-
 
   useEffect(() => {
     api.get(`/menu/public/${vendorId}`).then(res => { if (res.success) setItems(res.data) }).finally(() => setLoading(false))
@@ -119,17 +103,20 @@ export default function MenuPage() {
   return (
     <>
       <div className="min-h-screen bg-zinc-950 pb-36">
-        {/* Header */}
-        <div className={`fixed top-4 left-4 right-4 z-50 glass rounded-full px-5 py-3 flex items-center justify-between transition-all duration-300 ${headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-16 pointer-events-none'}`}>
+
+        {/* Header — sticky, not fixed */}
+        <div className="sticky top-0 z-50 glass px-5 py-3 flex items-center justify-between">
           <span className="font-display font-bold text-white tracking-tighter text-base lowercase">{vendorName}</span>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
-            <span className="text-xs text-zinc-400 tabular-nums">{loading ? '…' : `${items.filter(i => i.is_available).length} items`}</span>
+            <span className="text-xs text-zinc-400 tabular-nums">
+              {loading ? '…' : `${items.filter(i => i.is_available).length} items`}
+            </span>
           </div>
         </div>
 
         {/* Search */}
-        <div className="pt-24 px-4 pb-3">
+        <div className="px-4 pt-3 pb-3">
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm pointer-events-none">⌕</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search menu…"
@@ -162,7 +149,7 @@ export default function MenuPage() {
           </div>
         )}
 
-        {/* Menu grid — always 2 cols, never full width */}
+        {/* Menu grid */}
         <div className="px-4 pt-3 grid grid-cols-2 gap-3">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => <SkeletonMenuCard key={i} />)
@@ -207,11 +194,9 @@ function MenuCard({ item, qty, onAdd, onRemove }: {
   return (
     <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 flex flex-col transition-all duration-200 hover:border-zinc-700 active:scale-[0.98]">
 
-      {/* Square image area — fixed aspect ratio */}
+      {/* Square image area */}
       <div className={`${bg} aspect-square flex items-center justify-center relative`}>
         <span className="text-4xl">{icon}</span>
-
-        {/* Veg/Non-veg indicator */}
         {(isVeg || isNonVeg) && (
           <div className={`absolute top-2 left-2 w-4 h-4 rounded flex items-center justify-center border ${isVeg ? 'border-emerald-500 bg-black/60' : 'border-rose-500 bg-black/60'}`}>
             <div className={`w-2 h-2 rounded-full ${isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
@@ -231,7 +216,6 @@ function MenuCard({ item, qty, onAdd, onRemove }: {
             </div>
           )}
         </div>
-
         <div className="flex items-center justify-between mt-auto">
           <span className={`font-bold text-sm ${accent}`}>₹{item.price}</span>
           {qty > 0 ? (
