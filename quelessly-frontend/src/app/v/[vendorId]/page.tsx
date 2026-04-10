@@ -14,26 +14,32 @@ interface MenuItem {
   image_url: string | null
   is_available: boolean
 }
-
 interface CartItem extends MenuItem { quantity: number }
 
-const CAT_GRADIENT: Record<string, string> = {
-  'Veg':       'from-emerald-500 to-green-600',
-  'Non-Veg':   'from-rose-500 to-red-600',
-  'Breakfast': 'from-amber-400 to-orange-500',
-  'Drinks':    'from-cyan-400 to-blue-500',
-  'Snacks':    'from-lime-400 to-emerald-500',
-  'Lunch':     'from-orange-400 to-rose-500',
-  'Dinner':    'from-violet-400 to-purple-600',
-  'Desserts':  'from-pink-300 to-rose-500',
+const CAT_BG: Record<string, string> = {
+  'Veg':       'bg-emerald-950',
+  'Non-Veg':   'bg-rose-950',
+  'Breakfast': 'bg-amber-950',
+  'Drinks':    'bg-sky-950',
+  'Snacks':    'bg-lime-950',
+  'Lunch':     'bg-orange-950',
+  'Dinner':    'bg-violet-950',
+  'Desserts':  'bg-pink-950',
 }
-
+const CAT_ACCENT: Record<string, string> = {
+  'Veg':       'text-emerald-400',
+  'Non-Veg':   'text-rose-400',
+  'Breakfast': 'text-amber-400',
+  'Drinks':    'text-sky-400',
+  'Snacks':    'text-lime-400',
+  'Lunch':     'text-orange-400',
+  'Dinner':    'text-violet-400',
+  'Desserts':  'text-pink-400',
+}
 const CAT_ICON: Record<string, string> = {
-  'Veg': '🥗', 'Non-Veg': '🍗',
-  'Breakfast': '🌅', 'Drinks': '☕', 'Snacks': '🍟',
-  'Lunch': '🍱', 'Dinner': '🍽️', 'Desserts': '🍰',
+  'Veg': '🥗', 'Non-Veg': '🍗', 'Breakfast': '🌅', 'Drinks': '☕',
+  'Snacks': '🍟', 'Lunch': '🍱', 'Dinner': '🍽️', 'Desserts': '🍰',
 }
-
 const CAT_PILL: Record<string, string> = {
   'Veg':       'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
   'Non-Veg':   'bg-rose-500/10 text-rose-400 border-rose-500/20',
@@ -45,19 +51,10 @@ const CAT_PILL: Record<string, string> = {
   'Desserts':  'bg-pink-500/10 text-pink-400 border-pink-500/20',
 }
 
-function getGradient(cats: string[]) {
-  for (const c of cats) if (CAT_GRADIENT[c]) return CAT_GRADIENT[c]
-  return 'from-zinc-700 to-zinc-800'
-}
-
-function getIcon(cats: string[]) {
-  for (const c of cats) if (CAT_ICON[c]) return CAT_ICON[c]
-  return '🍴'
-}
-
-function getPillStyle(cat: string) {
-  return CAT_PILL[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
-}
+const getBg = (cats: string[]) => { for (const c of cats) if (CAT_BG[c]) return CAT_BG[c]; return 'bg-zinc-800' }
+const getAccent = (cats: string[]) => { for (const c of cats) if (CAT_ACCENT[c]) return CAT_ACCENT[c]; return 'text-zinc-400' }
+const getIcon = (cats: string[]) => { for (const c of cats) if (CAT_ICON[c]) return CAT_ICON[c]; return '🍴' }
+const getPillStyle = (cat: string) => CAT_PILL[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
 
 export default function MenuPage() {
   const { vendorId } = useParams()
@@ -67,73 +64,51 @@ export default function MenuPage() {
   const [loading, setLoading] = useState(true)
   const [activeCategory, setActiveCategory] = useState('All')
   const [search, setSearch] = useState('')
-  const [vendorName, setVendorName] = useState('the canteen.')
+  const [vendorName] = useState('the canteen.')
   const [activeOrder, setActiveOrder] = useState<{ orderId: string; total: number } | null>(null)
 
   useEffect(() => {
-    api.get(`/menu/public/${vendorId}`)
-      .then((res) => { if (res.success) setItems(res.data) })
-      .finally(() => setLoading(false))
+    api.get(`/menu/public/${vendorId}`).then(res => { if (res.success) setItems(res.data) }).finally(() => setLoading(false))
   }, [vendorId])
 
   useEffect(() => {
     const stored = localStorage.getItem('active_order')
     if (stored) {
       const order = JSON.parse(stored)
-      if (order.vendorId === vendorId && Date.now() - order.timestamp < 2 * 60 * 60 * 1000) {
+      if (order.vendorId === vendorId && Date.now() - order.timestamp < 2 * 60 * 60 * 1000)
         setActiveOrder({ orderId: order.orderId, total: order.total })
-      }
     }
   }, [vendorId])
 
-  const categories = useMemo(
-    () => ['All', ...Array.from(new Set(items.flatMap((i) => i.categories ?? [])))],
-    [items]
-  )
+  const categories = useMemo(() => ['All', ...Array.from(new Set(items.flatMap(i => i.categories ?? [])))], [items])
 
   const filtered = useMemo(() => {
-    let list = activeCategory === 'All'
-      ? items
-      : items.filter((i) => (i.categories ?? []).includes(activeCategory))
-    if (search.trim()) list = list.filter((i) => i.name.toLowerCase().includes(search.toLowerCase()))
-    return list.filter((i) => i.is_available)
+    let list = activeCategory === 'All' ? items : items.filter(i => (i.categories ?? []).includes(activeCategory))
+    if (search.trim()) list = list.filter(i => i.name.toLowerCase().includes(search.toLowerCase()))
+    return list.filter(i => i.is_available)
   }, [items, activeCategory, search])
 
   const addToCart = (item: MenuItem) =>
-    setCart((prev) => {
-      const ex = prev.find((c) => c.id === item.id)
-      return ex ? prev.map((c) => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c) : [...prev, { ...item, quantity: 1 }]
-    })
+    setCart(prev => { const ex = prev.find(c => c.id === item.id); return ex ? prev.map(c => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c) : [...prev, { ...item, quantity: 1 }] })
 
   const removeFromCart = (itemId: string) =>
-    setCart((prev) => {
-      const ex = prev.find((c) => c.id === itemId)
-      if (ex && ex.quantity > 1) return prev.map((c) => c.id === itemId ? { ...c, quantity: c.quantity - 1 } : c)
-      return prev.filter((c) => c.id !== itemId)
-    })
+    setCart(prev => { const ex = prev.find(c => c.id === itemId); if (ex && ex.quantity > 1) return prev.map(c => c.id === itemId ? { ...c, quantity: c.quantity - 1 } : c); return prev.filter(c => c.id !== itemId) })
 
-  const getQty = (id: string) => cart.find((c) => c.id === id)?.quantity ?? 0
+  const getQty = (id: string) => cart.find(c => c.id === id)?.quantity ?? 0
   const totalItems = cart.reduce((s, c) => s + c.quantity, 0)
   const totalAmount = cart.reduce((s, c) => s + c.price * c.quantity, 0)
 
-  const goToCart = () => {
-    localStorage.setItem('cart', JSON.stringify(cart))
-    localStorage.setItem('vendorId', vendorId as string)
-    router.push('/cart')
-  }
+  const goToCart = () => { localStorage.setItem('cart', JSON.stringify(cart)); localStorage.setItem('vendorId', vendorId as string); router.push('/cart') }
 
   return (
     <>
       <div className="min-h-screen bg-zinc-950 pb-36">
-
-        {/* Floating glass header */}
+        {/* Header */}
         <div className="fixed top-4 left-4 right-4 z-50 glass rounded-full px-5 py-3 flex items-center justify-between">
           <span className="font-display font-bold text-white tracking-tighter text-base lowercase">{vendorName}</span>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
-            <span className="text-xs text-zinc-400 tabular-nums">
-              {loading ? '…' : `${items.filter(i => i.is_available).length} items`}
-            </span>
+            <span className="text-xs text-zinc-400 tabular-nums">{loading ? '…' : `${items.filter(i => i.is_available).length} items`}</span>
           </div>
         </div>
 
@@ -141,18 +116,16 @@ export default function MenuPage() {
         <div className="pt-24 px-4 pb-3">
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm pointer-events-none">⌕</span>
-            <input value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search menu…"
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search menu…"
               className="w-full bg-zinc-900 border border-zinc-800 rounded-full pl-10 pr-5 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-lime-400/50 transition-colors" />
           </div>
         </div>
 
         {/* Category pills */}
         <div className="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
-          {categories.map((cat) => (
+          {categories.map(cat => (
             <button key={cat} onClick={() => setActiveCategory(cat)}
-              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap border transition-all duration-200 active:scale-95 ${
-                activeCategory === cat ? 'bg-lime-400 text-black border-transparent' : 'bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600'
-              }`}>
+              className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap border transition-all duration-200 active:scale-95 ${activeCategory === cat ? 'bg-lime-400 text-black border-transparent' : 'bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600'}`}>
               {cat !== 'All' && <span className="text-xs">{CAT_ICON[cat] ?? '🍴'}</span>}
               {cat}
             </button>
@@ -173,7 +146,7 @@ export default function MenuPage() {
           </div>
         )}
 
-        {/* Grid */}
+        {/* Menu grid — always 2 cols, never full width */}
         <div className="px-4 pt-3 grid grid-cols-2 gap-3">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => <SkeletonMenuCard key={i} />)
@@ -184,20 +157,13 @@ export default function MenuPage() {
                 <p className="text-zinc-400 font-medium">Nothing found</p>
               </div>
             )
-            : filtered.map((item, i) => (
-              <MenuCard
-                key={item.id}
-                item={item}
-                qty={getQty(item.id)}
-                fullWidth={i === 0 && filtered.length % 2 !== 0}
-                onAdd={() => addToCart(item)}
-                onRemove={() => removeFromCart(item.id)}
-              />
+            : filtered.map(item => (
+              <MenuCard key={item.id} item={item} qty={getQty(item.id)} onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item.id)} />
             ))
           }
         </div>
 
-        {/* Cart floating pill */}
+        {/* Cart pill */}
         {totalItems > 0 && (
           <button onClick={goToCart}
             className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-lime-400 text-black px-6 py-4 rounded-full glow-lime font-bold text-sm whitespace-nowrap flex items-center gap-4 active:scale-95 transition-all duration-300">
@@ -212,70 +178,54 @@ export default function MenuPage() {
   )
 }
 
-function MenuCard({ item, qty, fullWidth, onAdd, onRemove }: {
-  item: MenuItem
-  qty: number
-  fullWidth: boolean
-  onAdd: () => void
-  onRemove: () => void
+function MenuCard({ item, qty, onAdd, onRemove }: {
+  item: MenuItem; qty: number; onAdd: () => void; onRemove: () => void
 }) {
-  const grad = getGradient(item.categories ?? [])
+  const bg = getBg(item.categories ?? [])
+  const accent = getAccent(item.categories ?? [])
   const icon = getIcon(item.categories ?? [])
+  const isVeg = (item.categories ?? []).includes('Veg')
+  const isNonVeg = (item.categories ?? []).includes('Non-Veg')
+  const otherCats = (item.categories ?? []).filter(c => c !== 'Veg' && c !== 'Non-Veg')
 
   return (
-    <div className={`bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col animate-slide-up transition-all duration-200 hover:border-zinc-700 ${fullWidth ? 'col-span-2' : ''}`}>
+    <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 flex flex-col transition-all duration-200 hover:border-zinc-700 active:scale-[0.98]">
 
-      {/* Card image area */}
-      <div className={`bg-gradient-to-br ${grad} ${fullWidth ? 'h-36' : 'h-24'} flex items-center justify-center relative`}>
-        <span className={`${fullWidth ? 'text-5xl' : 'text-3xl'} drop-shadow-lg`}>{icon}</span>
-        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/70 via-transparent to-transparent" />
-        {/* Veg/Non-Veg dot indicator */}
-        {(item.categories ?? []).includes('Veg') && (
-          <div className="absolute top-2 right-2 w-5 h-5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-sm border border-emerald-400 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-            </div>
-          </div>
-        )}
-        {(item.categories ?? []).includes('Non-Veg') && (
-          <div className="absolute top-2 right-2 w-5 h-5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
-            <div className="w-2.5 h-2.5 rounded-sm border border-rose-400 flex items-center justify-center">
-              <div className="w-1.5 h-1.5 rounded-full bg-rose-400" />
-            </div>
+      {/* Square image area — fixed aspect ratio */}
+      <div className={`${bg} aspect-square flex items-center justify-center relative`}>
+        <span className="text-4xl">{icon}</span>
+
+        {/* Veg/Non-veg indicator */}
+        {(isVeg || isNonVeg) && (
+          <div className={`absolute top-2 left-2 w-4 h-4 rounded flex items-center justify-center border ${isVeg ? 'border-emerald-500 bg-black/60' : 'border-rose-500 bg-black/60'}`}>
+            <div className={`w-2 h-2 rounded-full ${isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
           </div>
         )}
       </div>
 
-      {/* Card body */}
-      <div className="p-3 flex-1 flex flex-col justify-between gap-2">
+      {/* Card info */}
+      <div className="p-3 flex flex-col gap-2 flex-1">
         <div>
-          <p className="font-semibold text-white text-sm leading-tight">{item.name}</p>
-          {/* Category pills — only show non-veg/veg ones to save space */}
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {(item.categories ?? [])
-              .filter(c => c !== 'Veg' && c !== 'Non-Veg')
-              .slice(0, 2)
-              .map((c) => (
-                <span key={c} className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(c)}`}>
-                  {c}
-                </span>
+          <p className="font-semibold text-white text-sm leading-tight line-clamp-2">{item.name}</p>
+          {otherCats.length > 0 && (
+            <div className="flex flex-wrap gap-1 mt-1">
+              {otherCats.slice(0, 1).map(c => (
+                <span key={c} className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(c)}`}>{c}</span>
               ))}
-          </div>
+            </div>
+          )}
         </div>
 
-        <div className="flex items-center justify-between">
-          <span className="font-bold text-white text-sm">₹{item.price}</span>
+        <div className="flex items-center justify-between mt-auto">
+          <span className={`font-bold text-sm ${accent}`}>₹{item.price}</span>
           {qty > 0 ? (
             <div className="flex items-center gap-1.5 bg-zinc-800 border border-lime-400/40 rounded-full px-2 py-0.5">
-              <button onClick={onRemove} className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform">−</button>
+              <button onClick={onRemove} className="w-4 h-4 flex items-center justify-center text-lime-400 font-black text-sm leading-none active:scale-90 transition-transform">−</button>
               <span className="text-white font-bold text-xs tabular-nums w-3 text-center">{qty}</span>
-              <button onClick={onAdd} className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform">+</button>
+              <button onClick={onAdd} className="w-4 h-4 flex items-center justify-center text-lime-400 font-black text-sm leading-none active:scale-90 transition-transform">+</button>
             </div>
           ) : (
-            <button onClick={onAdd}
-              className="w-8 h-8 bg-zinc-800 hover:bg-zinc-700 rounded-full flex items-center justify-center text-white font-bold text-base active:scale-90 transition-all duration-200 border border-zinc-700 hover:border-lime-400/30">
-              +
-            </button>
+            <button onClick={onAdd} className="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 rounded-full flex items-center justify-center text-white font-bold text-sm active:scale-90 transition-all border border-zinc-700 hover:border-lime-400/30">+</button>
           )}
         </div>
       </div>
