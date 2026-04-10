@@ -176,7 +176,7 @@ export default function HomePage() {
               Scan a QR code, pick your food, pay with UPI — and walk up when it's ready. No app. No queue. No cash.
             </p>
             <div className="hero-btns" style={{ display:'flex', gap:10, flexWrap:'wrap' }}>
-              <button onClick={() => setScannerOpen(true)} className="btn-lime" style={{ fontSize:15, padding:'12px 26px' }}>📷 Scan & Order</button>
+              <button onClick={() => setScannerOpen(true)} className="btn-lime" style={{ fontSize:15, padding:'12px 26px' }}> Scan & Order </button>
               <button onClick={() => scrollTo('owners')} className="btn-ghost" style={{ fontSize:15, padding:'12px 26px' }}>For business owners</button>
             </div>
           </div>
@@ -332,7 +332,7 @@ export default function HomePage() {
             Less time waiting.<br /><span style={{ color:'var(--lime)' }}>More time eating.</span>
           </h2>
           <button onClick={() => setScannerOpen(true)} className="btn-lime" style={{ fontSize:16, padding:'14px 32px' }}>
-            📷 Scan & Order
+             Scan & Order
           </button>
         </div>
       </section>
