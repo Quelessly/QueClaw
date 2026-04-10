@@ -6,6 +6,7 @@ import { api } from '@/lib/api'
 import { SkeletonMenuCard } from '@/components/Skeleton'
 import Footer from '@/components/Footer'
 
+
 interface MenuItem {
   id: string
   name: string
@@ -66,6 +67,21 @@ export default function MenuPage() {
   const [search, setSearch] = useState('')
   const [vendorName] = useState('the canteen.')
   const [activeOrder, setActiveOrder] = useState<{ orderId: string; total: number } | null>(null)
+  const [headerVisible, setHeaderVisible] = useState(true)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const curr = window.scrollY
+      setHeaderVisible(curr < lastScrollY.current || curr < 60)
+      lastScrollY.current = curr
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+
+
 
   useEffect(() => {
     api.get(`/menu/public/${vendorId}`).then(res => { if (res.success) setItems(res.data) }).finally(() => setLoading(false))
@@ -104,7 +120,7 @@ export default function MenuPage() {
     <>
       <div className="min-h-screen bg-zinc-950 pb-36">
         {/* Header */}
-        <div className="fixed top-4 left-4 right-4 z-50 glass rounded-full px-5 py-3 flex items-center justify-between">
+        <div className={`fixed top-4 left-4 right-4 z-50 glass rounded-full px-5 py-3 flex items-center justify-between transition-all duration-300 ${headerVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-16 pointer-events-none'}`}>
           <span className="font-display font-bold text-white tracking-tighter text-base lowercase">{vendorName}</span>
           <div className="flex items-center gap-1.5">
             <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
