@@ -57,6 +57,14 @@ function ConfirmedIcon() {
   )
 }
 
+// Progress stepper steps
+const STEPPER_STEPS = [
+  { key: 'paid',      label: 'Confirmed', icon: '✓' },
+  { key: 'preparing', label: 'Cooking',   icon: '👨‍🍳' },
+  { key: 'ready',     label: 'Ready',     icon: '✓' },
+  { key: 'completed', label: 'Done',      icon: '✓' },
+]
+
 export default function OrderPage() {
   const { orderId } = useParams()
   const router = useRouter()
@@ -118,14 +126,12 @@ export default function OrderPage() {
 
   if (!order) return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center gap-5 px-6">
-      <span className="text-6xl">😕</span>
       <p className="text-zinc-400 font-display font-bold text-xl tracking-tighter">Order not found</p>
-      <button onClick={() => router.push('/')} className="text-lime-400 font-semibold text-sm">
-        Go home →
-      </button>
+      <a href="https://quelessly.com" className="text-lime-400 font-semibold text-sm">Go home →</a>
     </div>
   )
 
+  // Ready state — full screen green with animation
   if (order.status === 'ready') return (
     <div className="fixed inset-0 bg-lime-400 flex flex-col items-center justify-center px-6 animate-ready-in z-50">
       <p className="text-black/50 text-xs font-bold uppercase tracking-[0.3em] mb-8">
@@ -148,6 +154,9 @@ export default function OrderPage() {
           ))}
         </div>
       </div>
+      <a href="https://quelessly.com" className="mt-8 text-xs text-black/30 hover:text-black/50 transition-colors">
+        powered by quelessly.
+      </a>
     </div>
   )
 
@@ -172,16 +181,21 @@ export default function OrderPage() {
           <span className="text-lime-400 font-mono">₹{Number(order.total_amount)}</span>
         </div>
       </div>
+      <a href="https://quelessly.com" className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors">
+        powered by quelessly.
+      </a>
     </div>
   )
 
   if (order.status === 'cancelled') return (
     <div className="min-h-screen bg-zinc-950 flex flex-col items-center justify-center px-6 gap-5">
-      <span className="text-6xl">❌</span>
       <div className="text-center">
         <h2 className="text-2xl font-display font-bold text-white tracking-tighter">Order cancelled</h2>
         <p className="text-zinc-500 text-sm mt-1">Contact the canteen for help</p>
       </div>
+      <a href="https://quelessly.com" className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors">
+        powered by quelessly.
+      </a>
     </div>
   )
 
@@ -208,6 +222,7 @@ export default function OrderPage() {
       </div>
 
       <div className="px-4 space-y-4">
+        {/* Main status card */}
         <div className={`glass rounded-4xl py-10 flex flex-col items-center gap-4 border transition-all duration-500 ${statusPulse ? 'border-lime-400/50 shadow-[0_0_30px_rgba(163,230,53,0.15)]' : 'border-white/8'}`}>
           {isPreparing ? <PulsingRing /> : <ConfirmedIcon />}
           <div className="text-center px-6">
@@ -224,32 +239,29 @@ export default function OrderPage() {
           </div>
         </div>
 
+        {/* Progress stepper */}
         <div className="glass rounded-3xl p-5">
+          <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-4">Progress</p>
           <div className="flex items-center">
-            {[
-              { key: 'paid',      label: 'Confirmed' },
-              { key: 'preparing', label: 'Cooking'   },
-              { key: 'ready',     label: 'Ready'     },
-              { key: 'completed', label: 'Done'      },
-            ].map((step, i, arr) => {
+            {STEPPER_STEPS.map((step, i, arr) => {
               const stepIdx = STATUS_ORDER.indexOf(step.key)
               const done    = currentStepIndex >= stepIdx
               const active  = order.status === step.key
               return (
                 <div key={step.key} className="flex items-center flex-1 last:flex-none">
                   <div className="flex flex-col items-center gap-1.5">
-                    <div className={`w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
+                    <div className={`w-9 h-9 rounded-full flex items-center justify-center text-xs font-bold transition-all duration-500 ${
                       done ? 'bg-lime-400 text-black' : 'bg-zinc-800 text-zinc-600'
-                    } ${active ? 'ring-2 ring-lime-400/40 ring-offset-2 ring-offset-zinc-900' : ''}`}>
+                    } ${active ? 'ring-2 ring-lime-400/40 ring-offset-2 ring-offset-zinc-950' : ''}`}>
                       {done ? '✓' : i + 1}
                     </div>
-                    <span className={`text-xs transition-colors duration-500 ${done ? 'text-zinc-300' : 'text-zinc-600'}`}>
+                    <span className={`text-[10px] font-semibold transition-colors duration-500 text-center leading-tight ${done ? 'text-zinc-300' : 'text-zinc-600'}`}>
                       {step.label}
                     </span>
                   </div>
                   {i < arr.length - 1 && (
-                    <div className={`flex-1 h-px mx-2 mb-4 transition-colors duration-700 ${
-                      currentStepIndex > stepIdx ? 'bg-lime-400/40' : 'bg-zinc-800'
+                    <div className={`flex-1 h-px mx-1.5 mb-5 transition-colors duration-700 ${
+                      currentStepIndex > stepIdx ? 'bg-lime-400/50' : 'bg-zinc-800'
                     }`} />
                   )}
                 </div>
@@ -258,6 +270,7 @@ export default function OrderPage() {
           </div>
         </div>
 
+        {/* Items */}
         <div className="glass rounded-3xl overflow-hidden">
           <div className="px-5 py-3.5 border-b border-white/5">
             <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Your Items</p>
@@ -277,6 +290,13 @@ export default function OrderPage() {
               <span className="font-black text-lime-400 font-mono text-lg">₹{Number(order.total_amount)}</span>
             </div>
           </div>
+        </div>
+
+        {/* Powered by */}
+        <div className="text-center py-4">
+          <a href="https://quelessly.com" className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors">
+            powered by quelessly.
+          </a>
         </div>
       </div>
     </div>

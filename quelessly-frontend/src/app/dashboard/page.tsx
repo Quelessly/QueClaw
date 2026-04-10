@@ -11,7 +11,7 @@ interface Vendor { id: string; name: string; email: string }
 interface OrderItem { id: string; quantity: number; price: string; menu_item: { name: string } }
 interface Order { id: string; status: string; total_amount: string; created_at: string; order_items: OrderItem[] }
 interface MenuItem { id: string; name: string; price: string; categories: string[]; is_available: boolean }
-type Tab = 'orders' | 'menu' | 'qr'
+type Tab = 'orders' | 'menu' | 'qr' | 'settings'
 
 const STATUS_FLOW: Record<string, string> = { paid: 'preparing', preparing: 'ready', ready: 'completed' }
 
@@ -22,12 +22,12 @@ const ACTION_LABEL: Record<string, { label: string; style: string }> = {
 }
 
 const STATUS_CONFIG: Record<string, { badge: string; bar: string; label: string }> = {
-  pending:   { badge: 'bg-amber-500/15 text-amber-400 border border-amber-500/20',   bar: 'bg-amber-500',  label: 'Pending'    },
-  paid:      { badge: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',      bar: 'bg-blue-500',   label: 'Paid'       },
-  preparing: { badge: 'bg-orange-500/15 text-orange-400 border border-orange-500/20', bar: 'bg-orange-500', label: 'Cooking'    },
-  ready:     { badge: 'bg-lime-500/15 text-lime-400 border border-lime-500/20',       bar: 'bg-lime-400',   label: 'Ready ✓'   },
-  completed: { badge: 'bg-zinc-800 text-zinc-500 border border-zinc-700',             bar: 'bg-zinc-700',   label: 'Done'       },
-  cancelled: { badge: 'bg-rose-500/15 text-rose-400 border border-rose-500/20',       bar: 'bg-rose-500',   label: 'Cancelled'  },
+  pending:   { badge: 'bg-amber-500/15 text-amber-400 border border-amber-500/20',    bar: 'bg-amber-500',  label: 'Pending'   },
+  paid:      { badge: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',       bar: 'bg-blue-500',   label: 'Paid'      },
+  preparing: { badge: 'bg-orange-500/15 text-orange-400 border border-orange-500/20', bar: 'bg-orange-500', label: 'Cooking'   },
+  ready:     { badge: 'bg-lime-500/15 text-lime-400 border border-lime-500/20',        bar: 'bg-lime-400',   label: 'Ready ✓'  },
+  completed: { badge: 'bg-zinc-800 text-zinc-500 border border-zinc-700',              bar: 'bg-zinc-700',   label: 'Done'      },
+  cancelled: { badge: 'bg-rose-500/15 text-rose-400 border border-rose-500/20',        bar: 'bg-rose-500',   label: 'Cancelled' },
 }
 
 const SUGGESTED_CATEGORIES = ['Veg', 'Non-Veg', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Desserts']
@@ -53,13 +53,10 @@ function formatDateLabel(dateStr: string): string {
   const today = new Date()
   const yesterday = new Date()
   yesterday.setDate(today.getDate() - 1)
-
   const isSameDay = (a: Date, b: Date) =>
     a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
-
   if (isSameDay(date, today)) return 'Today'
   if (isSameDay(date, yesterday)) return 'Yesterday'
-
   return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
 }
 
@@ -73,7 +70,7 @@ function groupOrdersByDate(orders: Order[]): { label: string; orders: Order[] }[
   return Object.entries(groups).map(([label, orders]) => ({ label, orders }))
 }
 
-// ─── Root ─────────────────────────────────────────────────────────────────────
+// ─── Root ──────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { toasts, toast } = useToast()
@@ -107,7 +104,7 @@ export default function DashboardPage() {
   )
 }
 
-// ─── Login ────────────────────────────────────────────────────────────────────
+// ─── Login ─────────────────────────────────────────────────────────────────────
 
 function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => void; toast: (m: string, type?: any) => void }) {
   const [email, setEmail] = useState('')
@@ -157,9 +154,11 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
   )
 }
 
-// ─── Shell ────────────────────────────────────────────────────────────────────
+// ─── Shell ─────────────────────────────────────────────────────────────────────
 
-function DashboardShell({ token, vendor, onLogout, toast }: { token: string; vendor: Vendor | null; onLogout: () => void; toast: (m: string, type?: any) => void }) {
+function DashboardShell({ token, vendor, onLogout, toast }: {
+  token: string; vendor: Vendor | null; onLogout: () => void; toast: (m: string, type?: any) => void
+}) {
   const [tab, setTab] = useState<Tab>('orders')
   const [orders, setOrders] = useState<Order[]>([])
   const [ordersLoading, setOrdersLoading] = useState(true)
@@ -195,38 +194,91 @@ function DashboardShell({ token, vendor, onLogout, toast }: { token: string; ven
   }
 
   const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status))
-  const pastOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status))
+  const pastOrders   = orders.filter(o => ['completed', 'cancelled'].includes(o.status))
 
-  const TABS: { key: Tab; icon: string; label: string; badge?: number }[] = [
-    { key: 'orders', icon: '◈', label: 'Orders', badge: activeOrders.length || undefined },
-    { key: 'menu', icon: '⊞', label: 'Menu' },
-    { key: 'qr', icon: '⊟', label: 'QR' },
+  // Today's stats computed from orders
+  const todayOrders = pastOrders.filter(o => formatDateLabel(o.created_at) === 'Today')
+  const todayRevenue = todayOrders.reduce((s, o) => s + Number(o.total_amount), 0)
+
+  const TABS: { key: Tab; icon: React.ReactNode; label: string; badge?: number }[] = [
+    {
+      key: 'orders', label: 'Orders', badge: activeOrders.length || undefined,
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
+          <rect x="9" y="3" width="6" height="4" rx="1"/>
+          <path d="M9 12h6M9 16h4"/>
+        </svg>
+      ),
+    },
+    {
+      key: 'menu', label: 'Menu',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <path d="M12 2a7 7 0 017 7c0 3.5-2 6-4 8H9c-2-2-4-4.5-4-8a7 7 0 017-7z"/>
+          <path d="M9 21h6M10 17v4M14 17v4"/>
+        </svg>
+      ),
+    },
+    {
+      key: 'qr', label: 'QR',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <rect x="3" y="3" width="7" height="7" rx="1"/>
+          <rect x="14" y="3" width="7" height="7" rx="1"/>
+          <rect x="3" y="14" width="7" height="7" rx="1"/>
+          <path d="M14 14h3v3M17 17h3M20 14v3"/>
+        </svg>
+      ),
+    },
+    {
+      key: 'settings', label: 'Settings',
+      icon: (
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+          <circle cx="12" cy="12" r="3"/>
+          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
+        </svg>
+      ),
+    },
   ]
 
   return (
     <div className="min-h-screen bg-black flex">
+      {/* Desktop sidebar */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 bg-zinc-950 border-r border-zinc-900 flex-col items-center py-8 gap-2 z-40">
         <div className="w-10 h-10 bg-lime-400 rounded-2xl flex items-center justify-center mb-6 glow-lime-sm">
           <span className="text-black font-black text-lg font-display">Q</span>
         </div>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} title={t.label}
-            className={`relative w-12 h-12 rounded-2xl flex items-center justify-center text-xl transition-all duration-200 ${tab === t.key ? 'bg-lime-400/10 text-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.15)]' : 'text-zinc-600 hover:text-zinc-300 hover:bg-zinc-900'}`}>
+            className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 ${tab === t.key ? 'bg-lime-400/10 text-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.15)]' : 'text-zinc-600 hover:text-zinc-300 hover:bg-zinc-900'}`}>
             {t.icon}
             {t.badge !== undefined && <span className="absolute -top-1 -right-1 w-4 h-4 bg-lime-400 text-black text-[10px] font-black rounded-full flex items-center justify-center">{t.badge > 9 ? '9+' : t.badge}</span>}
           </button>
         ))}
         <div className="flex-1" />
-        <button onClick={onLogout} title="Logout" className="w-12 h-12 rounded-2xl flex items-center justify-center text-zinc-700 hover:text-rose-400 hover:bg-zinc-900 transition-all">⏻</button>
+        <button onClick={onLogout} title="Logout" className="w-12 h-12 rounded-2xl flex items-center justify-center text-zinc-700 hover:text-rose-400 hover:bg-zinc-900 transition-all">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+            <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
+          </svg>
+        </button>
       </aside>
 
       <main className="flex-1 md:ml-20 pb-24 md:pb-0 min-h-screen bg-black">
+        {/* Top bar */}
         <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-lg border-b border-zinc-900 px-5 py-4 flex items-center justify-between">
           <div>
             <h2 className="font-display font-bold text-white tracking-tighter">
-              {tab === 'orders' ? 'orders.' : tab === 'menu' ? 'menu.' : 'qr code.'}
+              {tab === 'orders' ? 'orders.' : tab === 'menu' ? 'menu.' : tab === 'qr' ? 'qr code.' : 'settings.'}
             </h2>
-            {tab === 'orders' && <p className="text-zinc-600 text-xs mt-0.5">{activeOrders.length} active · {pastOrders.length} past</p>}
+            {tab === 'orders' && (
+              <p className="text-zinc-600 text-xs mt-0.5">
+                {activeOrders.length} active · {pastOrders.length} past
+                {todayOrders.length > 0 && (
+                  <span className="ml-2 text-lime-400/70">· Today: {todayOrders.length} orders · ₹{todayRevenue}</span>
+                )}
+              </p>
+            )}
             {vendor && tab !== 'orders' && <p className="text-zinc-600 text-xs mt-0.5 lowercase">{vendor.name}</p>}
           </div>
           {tab === 'orders' && activeOrders.length > 0 && (
@@ -239,19 +291,31 @@ function DashboardShell({ token, vendor, onLogout, toast }: { token: string; ven
         </div>
 
         <div className="px-4 py-4">
-          {tab === 'orders' && <OrdersTab activeOrders={activeOrders} pastOrders={pastOrders} loading={ordersLoading} newOrderIds={newOrderIds} onUpdateStatus={updateStatus} />}
-          {tab === 'menu' && <MenuTab token={token} toast={toast} />}
-          {tab === 'qr' && <QRTab vendorId={vendor?.id} vendorName={vendor?.name} />}
+          {tab === 'orders' && (
+            <OrdersTab
+              activeOrders={activeOrders}
+              pastOrders={pastOrders}
+              todayOrders={todayOrders}
+              todayRevenue={todayRevenue}
+              loading={ordersLoading}
+              newOrderIds={newOrderIds}
+              onUpdateStatus={updateStatus}
+            />
+          )}
+          {tab === 'menu'     && <MenuTab token={token} toast={toast} />}
+          {tab === 'qr'       && <QRTab vendorId={vendor?.id} vendorName={vendor?.name} />}
+          {tab === 'settings' && <SettingsTab vendor={vendor} token={token} toast={toast} onLogout={onLogout} />}
         </div>
       </main>
 
+      {/* Mobile bottom nav — now 4 tabs */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-900 flex">
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
             className={`flex-1 flex flex-col items-center justify-center py-3 gap-0.5 relative transition-all duration-200 ${tab === t.key ? 'text-lime-400' : 'text-zinc-600'}`}>
             {tab === t.key && <span className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-lime-400 rounded-full" />}
-            <span className="text-lg">{t.icon}</span>
-            <span className="text-[10px] font-semibold">{t.label}</span>
+            {t.icon}
+            <span className="text-[9px] font-semibold mt-0.5">{t.label}</span>
             {t.badge !== undefined && <span className="absolute top-2 right-1/4 w-3.5 h-3.5 bg-lime-400 text-black text-[9px] font-black rounded-full flex items-center justify-center">{t.badge > 9 ? '9+' : t.badge}</span>}
           </button>
         ))}
@@ -260,10 +324,11 @@ function DashboardShell({ token, vendor, onLogout, toast }: { token: string; ven
   )
 }
 
-// ─── Orders Tab ───────────────────────────────────────────────────────────────
+// ─── Orders Tab ────────────────────────────────────────────────────────────────
 
-function OrdersTab({ activeOrders, pastOrders, loading, newOrderIds, onUpdateStatus }: {
-  activeOrders: Order[]; pastOrders: Order[]; loading: boolean; newOrderIds: Set<string>; onUpdateStatus: (id: string, status: string) => void
+function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loading, newOrderIds, onUpdateStatus }: {
+  activeOrders: Order[]; pastOrders: Order[]; todayOrders: Order[]; todayRevenue: number;
+  loading: boolean; newOrderIds: Set<string>; onUpdateStatus: (id: string, status: string) => void
 }) {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
@@ -271,11 +336,7 @@ function OrdersTab({ activeOrders, pastOrders, loading, newOrderIds, onUpdateSta
   const handleUpdate = async (id: string, status: string) => { setUpdatingId(id); await onUpdateStatus(id, status); setUpdatingId(null) }
 
   const toggleGroup = (label: string) => {
-    setCollapsedGroups(prev => {
-      const next = new Set(prev)
-      next.has(label) ? next.delete(label) : next.add(label)
-      return next
-    })
+    setCollapsedGroups(prev => { const next = new Set(prev); next.has(label) ? next.delete(label) : next.add(label); return next })
   }
 
   if (loading) return <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
@@ -285,11 +346,24 @@ function OrdersTab({ activeOrders, pastOrders, loading, newOrderIds, onUpdateSta
   return (
     <div className="space-y-8">
 
-      {/* ── Active orders ── */}
+      {/* Today's stats chips */}
+      {todayOrders.length > 0 && (
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+            <p className="text-xs text-zinc-500 mb-1">Today's orders</p>
+            <p className="text-2xl font-black text-white font-mono">{todayOrders.length}</p>
+          </div>
+          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
+            <p className="text-xs text-zinc-500 mb-1">Today's revenue</p>
+            <p className="text-2xl font-black text-lime-400 font-mono">₹{todayRevenue}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Active orders */}
       <section>
         {activeOrders.length === 0 ? (
           <div className="glass rounded-4xl p-12 text-center">
-            <p className="text-4xl mb-4">🤝</p>
             <p className="text-zinc-400 font-display font-bold text-lg tracking-tighter">All quiet</p>
             <p className="text-zinc-600 text-sm mt-1">New orders appear here in real time</p>
           </div>
@@ -302,35 +376,25 @@ function OrdersTab({ activeOrders, pastOrders, loading, newOrderIds, onUpdateSta
         )}
       </section>
 
-      {/* ── Past orders grouped by date ── */}
+      {/* Past orders grouped by date */}
       {pastGroups.length > 0 && (
         <section className="space-y-3">
           <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Past Orders</p>
           {pastGroups.map(({ label, orders }) => (
             <div key={label} className="bg-zinc-950 border border-zinc-800/60 rounded-2xl overflow-hidden">
-              {/* Group header — clickable to collapse */}
-              <button
-                onClick={() => toggleGroup(label)}
-                className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-900/50 transition-colors"
-              >
+              <button onClick={() => toggleGroup(label)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-900/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <span className="text-sm font-bold text-white">{label}</span>
                   <span className="text-xs text-zinc-600 font-mono bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
                     {orders.length} order{orders.length !== 1 ? 's' : ''}
                   </span>
-                  <span className="text-xs text-zinc-600 font-mono">
-                    ₹{orders.reduce((s, o) => s + Number(o.total_amount), 0)}
-                  </span>
+                  <span className="text-xs text-zinc-600 font-mono">₹{orders.reduce((s, o) => s + Number(o.total_amount), 0)}</span>
                 </div>
                 <span className={`text-zinc-600 text-xs transition-transform duration-200 ${collapsedGroups.has(label) ? '' : 'rotate-180'}`}>▼</span>
               </button>
-
-              {/* Group orders */}
               {!collapsedGroups.has(label) && (
                 <div className="px-3 pb-3 space-y-2">
-                  {orders.map(order => (
-                    <PastOrderCard key={order.id} order={order} />
-                  ))}
+                  {orders.map(order => <PastOrderCard key={order.id} order={order} />)}
                 </div>
               )}
             </div>
@@ -341,7 +405,7 @@ function OrdersTab({ activeOrders, pastOrders, loading, newOrderIds, onUpdateSta
   )
 }
 
-// ─── Active Order Card ────────────────────────────────────────────────────────
+// ─── Active Order Card ─────────────────────────────────────────────────────────
 
 function useSLA(createdAt: string, status: string): boolean {
   const [elapsed, setElapsed] = useState(Date.now() - new Date(createdAt).getTime())
@@ -356,25 +420,19 @@ function useSLA(createdAt: string, status: string): boolean {
 function OrderCard({ order, isNew, updating, onUpdate }: {
   order: Order; isNew: boolean; updating: boolean; onUpdate: (id: string, status: string) => void
 }) {
-  const sla = useSLA(order.created_at, order.status)
-  const next = STATUS_FLOW[order.status]
+  const sla    = useSLA(order.created_at, order.status)
+  const next   = STATUS_FLOW[order.status]
   const action = next ? ACTION_LABEL[order.status] : null
-  const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending
-  const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const cfg    = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending
+  const time   = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   const itemCount = order.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0
 
   return (
     <div className={`bg-zinc-900 rounded-3xl overflow-hidden border transition-all duration-300 ${
       isNew ? 'border-lime-400/50 shadow-[0_0_24px_rgba(163,230,53,0.12)]' : sla ? 'border-rose-500/60' : 'border-zinc-800'
     }`}>
-      {/* Status bar — colored top strip */}
       <div className={`h-1 w-full ${cfg.bar}`} />
-
-      {isNew && (
-        <div className="bg-lime-400 text-black text-xs font-black text-center py-1.5 tracking-widest uppercase">
-          ✦ New Order
-        </div>
-      )}
+      {isNew && <div className="bg-lime-400 text-black text-xs font-black text-center py-1.5 tracking-widest uppercase">✦ New Order</div>}
       {sla && !isNew && (
         <div className="bg-rose-500/10 text-rose-400 text-xs font-bold text-center py-1.5 tracking-widest uppercase border-b border-rose-500/20">
           ⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m
@@ -382,7 +440,6 @@ function OrderCard({ order, isNew, updating, onUpdate }: {
       )}
 
       <div className="p-5">
-        {/* Header row */}
         <div className="flex items-start justify-between mb-4">
           <div>
             <div className="flex items-baseline gap-2">
@@ -400,13 +457,10 @@ function OrderCard({ order, isNew, updating, onUpdate }: {
           <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
         </div>
 
-        {/* Items list */}
         <div className="bg-zinc-800/40 rounded-2xl overflow-hidden mb-4">
           {order.order_items?.map((item, idx) => (
             <div key={item.id} className={`flex items-center gap-3 px-4 py-2.5 ${idx !== 0 ? 'border-t border-zinc-800/60' : ''}`}>
-              <span className="w-6 h-6 rounded-lg bg-zinc-700 text-white text-xs font-black flex items-center justify-center shrink-0">
-                {item.quantity}
-              </span>
+              <span className="w-6 h-6 rounded-lg bg-zinc-700 text-white text-xs font-black flex items-center justify-center shrink-0">{item.quantity}</span>
               <span className="text-white text-sm font-medium flex-1">{item.menu_item?.name}</span>
               <span className="text-zinc-400 text-sm font-mono">₹{Number(item.price) * item.quantity}</span>
             </div>
@@ -428,17 +482,16 @@ function OrderCard({ order, isNew, updating, onUpdate }: {
   )
 }
 
-// ─── Past Order Card (compact) ────────────────────────────────────────────────
+// ─── Past Order Card ───────────────────────────────────────────────────────────
 
 function PastOrderCard({ order }: { order: Order }) {
   const [expanded, setExpanded] = useState(false)
-  const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.completed
-  const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const cfg       = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.completed
+  const time      = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   const itemCount = order.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0
 
   return (
     <div className="bg-zinc-900 border border-zinc-800/60 rounded-xl overflow-hidden">
-      {/* Compact row — always visible */}
       <button onClick={() => setExpanded(v => !v)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-zinc-800/30 transition-colors">
         <div className={`w-1.5 h-8 rounded-full shrink-0 ${cfg.bar}`} />
         <div className="flex-1 min-w-0">
@@ -458,16 +511,12 @@ function PastOrderCard({ order }: { order: Order }) {
           <span className={`text-zinc-600 text-xs transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
         </div>
       </button>
-
-      {/* Expanded items */}
       {expanded && (
         <div className="px-4 pb-3 border-t border-zinc-800/60">
           <div className="mt-2 space-y-1">
             {order.order_items?.map(item => (
               <div key={item.id} className="flex items-center gap-3 py-1.5">
-                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-400 text-[10px] font-bold flex items-center justify-center shrink-0">
-                  {item.quantity}
-                </span>
+                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-400 text-[10px] font-bold flex items-center justify-center shrink-0">{item.quantity}</span>
                 <span className="text-zinc-300 text-xs flex-1">{item.menu_item?.name}</span>
                 <span className="text-zinc-500 text-xs font-mono">₹{Number(item.price) * item.quantity}</span>
               </div>
@@ -479,7 +528,7 @@ function PastOrderCard({ order }: { order: Order }) {
   )
 }
 
-// ─── Menu Tab ─────────────────────────────────────────────────────────────────
+// ─── Menu Tab ──────────────────────────────────────────────────────────────────
 
 function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) => void }) {
   const [items, setItems] = useState<MenuItem[]>([])
@@ -530,7 +579,6 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
         <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
       ) : items.length === 0 ? (
         <div className="glass rounded-4xl p-12 text-center">
-          <p className="text-4xl mb-4">🍴</p>
           <p className="text-zinc-400 font-display font-bold text-lg tracking-tighter">No items yet</p>
           <p className="text-zinc-600 text-sm mt-1">Tap + to add your first item</p>
         </div>
@@ -538,7 +586,7 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
         allCats.map(cat => (
           <section key={cat}>
             <div className="flex items-center gap-3 mb-3">
-              <span className="text-base">{CAT_ICON[cat] ?? '🍴'}</span>
+              <span style={{ fontSize: '16px' }}>{CAT_ICON[cat] ?? '🍴'}</span>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{cat}</p>
               <div className="flex-1 h-px bg-zinc-800/80" />
               <span className="text-[10px] text-zinc-700 font-mono bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
@@ -595,13 +643,26 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
   item: MenuItem; onToggle: (i: MenuItem) => void; onDelete: (id: string) => void
   onEdit: (i: MenuItem) => void; onInlineEdit: (i: MenuItem, field: 'name' | 'price', value: string) => void
 }) {
-  const isVeg = (item.categories ?? []).includes('Veg')
+  const isVeg    = (item.categories ?? []).includes('Veg')
   const isNonVeg = (item.categories ?? []).includes('Non-Veg')
 
   return (
     <div className={`relative bg-zinc-900 border rounded-2xl overflow-hidden transition-all duration-200 ${!item.is_available ? 'opacity-50 border-zinc-800' : 'border-zinc-800 hover:border-zinc-600'}`}>
+      {/* Clean image area — no emoji, no colored backgrounds */}
       <div className="h-20 bg-zinc-800 flex items-center justify-center relative">
-        <span className="text-3xl">{CAT_ICON[(item.categories ?? [])[0]] ?? '🍴'}</span>
+        {item.is_available === false && (
+          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Unavailable</span>
+          </div>
+        )}
+        {/* Neutral placeholder */}
+        <div className="flex flex-col items-center gap-1 opacity-25">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
+            <rect x="3" y="3" width="18" height="18" rx="3" />
+            <circle cx="8.5" cy="8.5" r="1.5" />
+            <path d="M21 15l-5-5L5 21" />
+          </svg>
+        </div>
         {(isVeg || isNonVeg) && (
           <div className={`absolute top-2 left-2 w-4 h-4 rounded flex items-center justify-center border ${isVeg ? 'border-emerald-500 bg-zinc-900/80' : 'border-rose-500 bg-zinc-900/80'}`}>
             <div className={`w-2 h-2 rounded-full ${isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
@@ -627,7 +688,7 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
   )
 }
 
-// ─── Menu Item Form ───────────────────────────────────────────────────────────
+// ─── Menu Item Form ────────────────────────────────────────────────────────────
 
 function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, toast }: {
   token: string; editItem: MenuItem | null; existingCategories: string[]
@@ -640,8 +701,8 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
   const [loading, setLoading] = useState(false)
 
   const allOptions = Array.from(new Set([...SUGGESTED_CATEGORIES, ...existingCategories]))
-  const toggleCat = (cat: string) => setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
-  const addCustom = () => { const val = customInput.trim(); if (!val) return; if (!selectedCats.includes(val)) setSelectedCats(prev => [...prev, val]); setCustomInput('') }
+  const toggleCat  = (cat: string) => setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
+  const addCustom  = () => { const val = customInput.trim(); if (!val) return; if (!selectedCats.includes(val)) setSelectedCats(prev => [...prev, val]); setCustomInput('') }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -651,7 +712,7 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
     setLoading(true)
     try {
       const body = { name: name.trim(), price: Number(price), categories: selectedCats }
-      const res = editItem ? await api.patch(`/menu/${editItem.id}`, body, token) : await api.post('/menu', body, token)
+      const res  = editItem ? await api.patch(`/menu/${editItem.id}`, body, token) : await api.post('/menu', body, token)
       if (res.success) onSave()
       else toast(res.message || 'Failed', 'error')
     } finally { setLoading(false) }
@@ -704,7 +765,7 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
   )
 }
 
-// ─── QR Tab ───────────────────────────────────────────────────────────────────
+// ─── QR Tab ────────────────────────────────────────────────────────────────────
 
 function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: string }) {
   const qrRef = useRef<HTMLDivElement>(null)
@@ -715,8 +776,8 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
     const svg = qrRef.current?.querySelector('svg')
     if (!svg) return
     const blob = new Blob([new XMLSerializer().serializeToString(svg)], { type: 'image/svg+xml' })
-    const url = URL.createObjectURL(blob)
-    const a = Object.assign(document.createElement('a'), { href: url, download: `quelessly-qr.svg` })
+    const url  = URL.createObjectURL(blob)
+    const a    = Object.assign(document.createElement('a'), { href: url, download: 'quelessly-qr.svg' })
     a.click(); URL.revokeObjectURL(url); toast('QR downloaded', 'success')
   }
   const copyLink = () => { navigator.clipboard.writeText(menuUrl); toast('Link copied!', 'success') }
@@ -737,18 +798,95 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
       </div>
       <div className="grid grid-cols-2 gap-3">
         <button onClick={downloadSVG} className="glass rounded-3xl py-4 font-bold text-sm flex items-center justify-center gap-2 text-white active:scale-95 transition-all duration-200 hover:bg-zinc-800">⬇ Download</button>
-        <button onClick={copyLink} className="bg-lime-400 text-black rounded-3xl py-4 font-bold text-sm flex items-center justify-center gap-2 glow-lime-sm active:scale-95 transition-all duration-200">🔗 Copy Link</button>
+        <button onClick={copyLink}    className="bg-lime-400 text-black rounded-3xl py-4 font-bold text-sm flex items-center justify-center gap-2 glow-lime-sm active:scale-95 transition-all duration-200">🔗 Copy Link</button>
       </div>
       <div className="glass rounded-3xl p-5 space-y-3">
         <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">How it works</p>
         <div className="space-y-2.5">
-          {[['Print & place','on each table or the counter'],['Student scans','with their phone camera — no app needed'],['They order & pay','instantly via UPI / card'],['You get notified','in real time on this dashboard']].map(([title, desc], i) => (
+          {[
+            ['Print & place', 'on each table or the counter'],
+            ['Student scans', 'with their phone camera — no app needed'],
+            ['They order & pay', 'instantly via UPI / card'],
+            ['You get notified', 'in real time on this dashboard'],
+          ].map(([title, desc], i) => (
             <div key={i} className="flex items-start gap-3">
               <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-500 shrink-0 mt-0.5">{i + 1}</span>
               <div><span className="text-white text-xs font-semibold">{title} </span><span className="text-zinc-500 text-xs">{desc}</span></div>
             </div>
           ))}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ─── Settings Tab ──────────────────────────────────────────────────────────────
+
+function SettingsTab({ vendor, token, toast, onLogout }: {
+  vendor: Vendor | null; token: string; toast: (m: string, t?: any) => void; onLogout: () => void
+}) {
+  const [name, setName] = useState(vendor?.name ?? '')
+  const [saving, setSaving] = useState(false)
+
+  const handleSave = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!name.trim()) { toast('Name cannot be empty', 'warning'); return }
+    setSaving(true)
+    try {
+      const res = await api.patch('/auth/profile', { name: name.trim() }, token)
+      if (res.success) {
+        const updated = { ...vendor, name: name.trim() }
+        localStorage.setItem('vendor_info', JSON.stringify(updated))
+        toast('Canteen name updated!', 'success')
+      } else {
+        toast(res.message || 'Update failed', 'error')
+      }
+    } catch {
+      toast('Could not reach server', 'error')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  return (
+    <div className="max-w-sm space-y-4">
+      {/* Profile card */}
+      <div className="glass rounded-3xl p-6 space-y-4">
+        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Canteen Profile</p>
+        <form onSubmit={handleSave} className="space-y-3">
+          <div>
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Canteen Name</label>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              placeholder="Your canteen name"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
+            />
+            <p className="text-xs text-zinc-600 mt-1.5">This name is shown to students on the menu page.</p>
+          </div>
+          <div>
+            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Email</label>
+            <p className="text-sm text-zinc-400 px-1">{vendor?.email ?? '—'}</p>
+          </div>
+          <button
+            type="submit"
+            disabled={saving}
+            className="w-full bg-lime-400 text-black py-3 rounded-2xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
+          >
+            {saving ? <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />Saving…</> : 'Save Changes'}
+          </button>
+        </form>
+      </div>
+
+      {/* Danger zone */}
+      <div className="glass rounded-3xl p-6 space-y-3 border border-rose-500/10">
+        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Account</p>
+        <button
+          onClick={onLogout}
+          className="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 py-3 rounded-2xl font-bold text-sm hover:bg-rose-500/20 active:scale-[0.98] transition-all"
+        >
+          Sign out
+        </button>
       </div>
     </div>
   )
