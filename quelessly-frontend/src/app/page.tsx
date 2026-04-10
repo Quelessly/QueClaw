@@ -243,7 +243,7 @@ export default function HomePage() {
           <span className="slabel">How it works</span>
           <h2 style={{ fontSize:'clamp(28px,3.5vw,46px)', fontWeight:800, letterSpacing:'-1.5px', marginBottom:28 }}>Built for everyone at the canteen</h2>
           <div style={{ display:'inline-flex', gap:6, background:'rgba(255,255,255,0.03)', border:'1px solid rgba(255,255,255,0.06)', borderRadius:100, padding:4 }}>
-            <button className={`tab-btn ${activeTab==='student'?'tab-active':'tab-inactive'}`} onClick={()=>setActiveTab('student')}>For students</button>
+            <button className={`tab-btn ${activeTab==='student'?'tab-active':'tab-inactive'}`} onClick={()=>setActiveTab('student')}>For customers</button>
             <button className={`tab-btn ${activeTab==='owner'?'tab-active':'tab-inactive'}`} onClick={()=>setActiveTab('owner')}>For business owners</button>
           </div>
         </div>
