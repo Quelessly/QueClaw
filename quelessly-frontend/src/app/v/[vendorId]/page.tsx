@@ -18,34 +18,45 @@ interface MenuItem {
 interface CartItem extends MenuItem { quantity: number }
 
 const CAT_GRADIENT: Record<string, string> = {
-  Veg:       'from-green-400 to-emerald-600',
-  'Non-Veg': 'from-red-400 to-rose-600',
-  Breakfast: 'from-amber-400 to-orange-500',
-  Drinks:    'from-cyan-400 to-blue-500',
-  Snacks:    'from-lime-400 to-emerald-500',
-  Lunch:     'from-rose-400 to-pink-600',
-  Dinner:    'from-violet-400 to-purple-600',
-  Desserts:  'from-pink-300 to-rose-500',
+  'Veg':       'from-emerald-500 to-green-600',
+  'Non-Veg':   'from-rose-500 to-red-600',
+  'Breakfast': 'from-amber-400 to-orange-500',
+  'Drinks':    'from-cyan-400 to-blue-500',
+  'Snacks':    'from-lime-400 to-emerald-500',
+  'Lunch':     'from-orange-400 to-rose-500',
+  'Dinner':    'from-violet-400 to-purple-600',
+  'Desserts':  'from-pink-300 to-rose-500',
 }
 
 const CAT_ICON: Record<string, string> = {
-  Veg: '🥗', 'Non-Veg': '🍗',
-  Breakfast: '🌅', Drinks: '☕', Snacks: '🍟',
-  Lunch: '🍱', Dinner: '🍽️', Desserts: '🍰',
+  'Veg': '🥗', 'Non-Veg': '🍗',
+  'Breakfast': '🌅', 'Drinks': '☕', 'Snacks': '🍟',
+  'Lunch': '🍱', 'Dinner': '🍽️', 'Desserts': '🍰',
+}
+
+const CAT_PILL: Record<string, string> = {
+  'Veg':       'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'Non-Veg':   'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  'Breakfast': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  'Lunch':     'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  'Dinner':    'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  'Snacks':    'bg-lime-500/10 text-lime-400 border-lime-500/20',
+  'Drinks':    'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  'Desserts':  'bg-pink-500/10 text-pink-400 border-pink-500/20',
 }
 
 function getGradient(cats: string[]) {
-  for (const c of cats) {
-    if (CAT_GRADIENT[c]) return CAT_GRADIENT[c]
-  }
-  return 'from-zinc-600 to-zinc-700'
+  for (const c of cats) if (CAT_GRADIENT[c]) return CAT_GRADIENT[c]
+  return 'from-zinc-700 to-zinc-800'
 }
 
 function getIcon(cats: string[]) {
-  for (const c of cats) {
-    if (CAT_ICON[c]) return CAT_ICON[c]
-  }
+  for (const c of cats) if (CAT_ICON[c]) return CAT_ICON[c]
   return '🍴'
+}
+
+function getPillStyle(cat: string) {
+  return CAT_PILL[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
 }
 
 export default function MenuPage() {
@@ -75,7 +86,6 @@ export default function MenuPage() {
     }
   }, [vendorId])
 
-  // Build unique category list from all items' categories arrays
   const categories = useMemo(
     () => ['All', ...Array.from(new Set(items.flatMap((i) => i.categories ?? [])))],
     [items]
@@ -92,9 +102,7 @@ export default function MenuPage() {
   const addToCart = (item: MenuItem) =>
     setCart((prev) => {
       const ex = prev.find((c) => c.id === item.id)
-      return ex
-        ? prev.map((c) => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c)
-        : [...prev, { ...item, quantity: 1 }]
+      return ex ? prev.map((c) => c.id === item.id ? { ...c, quantity: c.quantity + 1 } : c) : [...prev, { ...item, quantity: 1 }]
     })
 
   const removeFromCart = (itemId: string) =>
@@ -117,6 +125,7 @@ export default function MenuPage() {
   return (
     <>
       <div className="min-h-screen bg-zinc-950 pb-36">
+
         {/* Floating glass header */}
         <div className="fixed top-4 left-4 right-4 z-50 glass rounded-full px-5 py-3 flex items-center justify-between">
           <span className="font-display font-bold text-white tracking-tighter text-base lowercase">{vendorName}</span>
@@ -180,7 +189,7 @@ export default function MenuPage() {
                 key={item.id}
                 item={item}
                 qty={getQty(item.id)}
-                fullWidth={i === 0 && filtered.length > 2}
+                fullWidth={i === 0 && filtered.length % 2 !== 0}
                 onAdd={() => addToCart(item)}
                 onRemove={() => removeFromCart(item.id)}
               />
@@ -214,26 +223,59 @@ function MenuCard({ item, qty, fullWidth, onAdd, onRemove }: {
   const icon = getIcon(item.categories ?? [])
 
   return (
-    <div className={`bg-zinc-900 rounded-4xl overflow-hidden border border-zinc-800 flex flex-col animate-slide-up ${fullWidth ? 'col-span-2' : ''}`}>
-      <div className={`bg-linear-to-br ${grad} ${fullWidth ? 'h-40' : 'h-28'} flex items-center justify-center relative`}>
-        <span className="text-4xl">{icon}</span>
-        <div className="absolute inset-0 bg-linear-to-t from-zinc-900/60 to-transparent" />
+    <div className={`bg-zinc-900 rounded-3xl overflow-hidden border border-zinc-800 flex flex-col animate-slide-up transition-all duration-200 hover:border-zinc-700 ${fullWidth ? 'col-span-2' : ''}`}>
+
+      {/* Card image area */}
+      <div className={`bg-gradient-to-br ${grad} ${fullWidth ? 'h-36' : 'h-24'} flex items-center justify-center relative`}>
+        <span className={`${fullWidth ? 'text-5xl' : 'text-3xl'} drop-shadow-lg`}>{icon}</span>
+        <div className="absolute inset-0 bg-gradient-to-t from-zinc-900/70 via-transparent to-transparent" />
+        {/* Veg/Non-Veg dot indicator */}
+        {(item.categories ?? []).includes('Veg') && (
+          <div className="absolute top-2 right-2 w-5 h-5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+            <div className="w-2.5 h-2.5 rounded-sm border border-emerald-400 flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            </div>
+          </div>
+        )}
+        {(item.categories ?? []).includes('Non-Veg') && (
+          <div className="absolute top-2 right-2 w-5 h-5 rounded-md bg-white/10 backdrop-blur-sm border border-white/20 flex items-center justify-center">
+            <div className="w-2.5 h-2.5 rounded-sm border border-rose-400 flex items-center justify-center">
+              <div className="w-1.5 h-1.5 rounded-full bg-rose-400" />
+            </div>
+          </div>
+        )}
       </div>
-      <div className="p-3.5 flex-1 flex flex-col justify-between">
+
+      {/* Card body */}
+      <div className="p-3 flex-1 flex flex-col justify-between gap-2">
         <div>
           <p className="font-semibold text-white text-sm leading-tight">{item.name}</p>
-          <p className="text-xs text-zinc-500 mt-0.5">{(item.categories ?? []).join(', ')}</p>
+          {/* Category pills — only show non-veg/veg ones to save space */}
+          <div className="flex flex-wrap gap-1 mt-1.5">
+            {(item.categories ?? [])
+              .filter(c => c !== 'Veg' && c !== 'Non-Veg')
+              .slice(0, 2)
+              .map((c) => (
+                <span key={c} className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(c)}`}>
+                  {c}
+                </span>
+              ))}
+          </div>
         </div>
-        <div className="flex items-center justify-between mt-3">
-          <span className="font-bold text-white">₹{item.price}</span>
+
+        <div className="flex items-center justify-between">
+          <span className="font-bold text-white text-sm">₹{item.price}</span>
           {qty > 0 ? (
-            <div className="flex items-center gap-2 bg-zinc-800 border border-lime-400/50 rounded-full px-2.5 py-1">
+            <div className="flex items-center gap-1.5 bg-zinc-800 border border-lime-400/40 rounded-full px-2 py-0.5">
               <button onClick={onRemove} className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform">−</button>
-              <span className="text-white font-bold text-sm tabular-nums w-4 text-center">{qty}</span>
+              <span className="text-white font-bold text-xs tabular-nums w-3 text-center">{qty}</span>
               <button onClick={onAdd} className="w-5 h-5 flex items-center justify-center text-lime-400 font-black text-base leading-none active:scale-90 transition-transform">+</button>
             </div>
           ) : (
-            <button onClick={onAdd} className="w-9 h-9 bg-zinc-800 hover:bg-zinc-700 rounded-full flex items-center justify-center text-white font-bold text-lg active:scale-90 transition-all duration-200 border border-zinc-700">+</button>
+            <button onClick={onAdd}
+              className="w-8 h-8 bg-zinc-800 hover:bg-zinc-700 rounded-full flex items-center justify-center text-white font-bold text-base active:scale-90 transition-all duration-200 border border-zinc-700 hover:border-lime-400/30">
+              +
+            </button>
           )}
         </div>
       </div>

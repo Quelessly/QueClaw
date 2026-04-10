@@ -62,6 +62,20 @@ const STATUS_LABEL: Record<string, string> = {
 
 const SUGGESTED_CATEGORIES = ['Veg', 'Non-Veg', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Desserts']
 
+const CAT_COLOR: Record<string, string> = {
+  'Veg':       'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
+  'Non-Veg':   'bg-rose-500/10 text-rose-400 border-rose-500/20',
+  'Breakfast': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
+  'Lunch':     'bg-orange-500/10 text-orange-400 border-orange-500/20',
+  'Dinner':    'bg-violet-500/10 text-violet-400 border-violet-500/20',
+  'Snacks':    'bg-lime-500/10 text-lime-400 border-lime-500/20',
+  'Drinks':    'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
+  'Desserts':  'bg-pink-500/10 text-pink-400 border-pink-500/20',
+}
+
+const getCatStyle = (cat: string) =>
+  CAT_COLOR[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
+
 export default function DashboardPage() {
   const { toasts, toast } = useToast()
   const [token, setToken] = useState<string | null>(null)
@@ -464,11 +478,10 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
     }
   }
 
-  // Collect all unique categories across all items
   const allCats = Array.from(new Set(items.flatMap((i) => i.categories ?? [])))
 
   return (
-    <div className="pb-24 md:pb-4 space-y-4">
+    <div className="pb-24 md:pb-4 space-y-6">
       {showForm && (
         <MenuItemForm
           token={token}
@@ -491,8 +504,14 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
       ) : (
         allCats.map((cat) => (
           <section key={cat}>
-            <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2">{cat}</p>
-            <div className="space-y-2">
+            <div className="flex items-center gap-3 mb-3">
+              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">{cat}</p>
+              <div className="flex-1 h-px bg-zinc-900" />
+              <span className="text-xs text-zinc-700 font-mono">
+                {items.filter((i) => (i.categories ?? []).includes(cat)).length} items
+              </span>
+            </div>
+            <div className="grid grid-cols-1 gap-2">
               {items.filter((i) => (i.categories ?? []).includes(cat)).map((item) => (
                 <MenuItemRow
                   key={item.id}
@@ -511,7 +530,7 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
       <button
         onClick={() => { setEditItem(null); setShowForm(!showForm) }}
         className={`fixed bottom-24 md:bottom-8 right-5 w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg active:scale-90 transition-all duration-200 z-30 ${
-          showForm ? 'bg-zinc-700 text-white rotate-45' : 'bg-zinc-800 text-white hover:bg-zinc-700 border border-zinc-700'
+          showForm ? 'bg-zinc-700 text-white rotate-45' : 'bg-lime-400 text-black glow-lime-sm hover:bg-lime-300'
         }`}
       >+</button>
     </div>
@@ -521,8 +540,8 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
     <button onClick={onChange}
-      className={`relative w-11 h-6 rounded-full transition-all duration-300 shrink-0 ${checked ? 'bg-lime-400 glow-lime-sm' : 'bg-zinc-700'}`}>
-      <span className={`absolute top-1 w-4 h-4 bg-black rounded-full transition-all duration-300 shadow-sm ${checked ? 'left-6' : 'left-1'}`} />
+      className={`relative w-10 h-5 rounded-full transition-all duration-300 shrink-0 ${checked ? 'bg-lime-400' : 'bg-zinc-700'}`}>
+      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm ${checked ? 'left-5' : 'left-0.5'}`} />
     </button>
   )
 }
@@ -540,14 +559,15 @@ function InlineField({ value, type = 'text', prefix = '', onSave }: {
       {prefix && <span className="text-zinc-400 text-sm">{prefix}</span>}
       <input autoFocus type={type} value={val} onChange={(e) => setVal(e.target.value)} onBlur={commit}
         onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setVal(value); setEditing(false) } }}
-        className="bg-zinc-800 border border-lime-400/50 rounded-lg px-2 py-0.5 text-sm text-white outline-none w-28 font-mono" />
+        className="bg-zinc-800 border border-lime-400/50 rounded-lg px-2 py-0.5 text-sm text-white outline-none w-24 font-mono" />
     </div>
   )
 
   return (
-    <span onClick={() => { setVal(value); setEditing(true) }} className="cursor-text hover:text-lime-400 transition-colors group" title="Click to edit">
+    <span onClick={() => { setVal(value); setEditing(true) }}
+      className="cursor-text hover:text-lime-400 transition-colors group" title="Click to edit">
       {prefix}{value}
-      <span className="opacity-0 group-hover:opacity-100 text-zinc-600 text-xs ml-1 transition-opacity">✎</span>
+      <span className="opacity-0 group-hover:opacity-50 text-zinc-500 text-xs ml-1 transition-opacity">✎</span>
     </span>
   )
 }
@@ -560,27 +580,51 @@ function MenuItemRow({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
   onInlineEdit: (i: MenuItem, field: 'name' | 'price', value: string) => void
 }) {
   return (
-    <div className={`bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3.5 flex items-center gap-3 transition-opacity ${!item.is_available ? 'opacity-50' : ''}`}>
-      <div className="flex-1 min-w-0">
-        <p className="font-semibold text-sm">
-          <InlineField value={item.name} onSave={(v) => onInlineEdit(item, 'name', v)} />
-        </p>
-        <p className="text-sm mt-0.5 text-zinc-400 font-mono">
-          <InlineField value={item.price} type="number" prefix="₹" onSave={(v) => onInlineEdit(item, 'price', v)} />
-        </p>
-        {/* Show category tags */}
-        {(item.categories ?? []).length > 0 && (
-          <div className="flex flex-wrap gap-1 mt-1.5">
-            {(item.categories ?? []).map((c) => (
-              <span key={c} className="text-[10px] px-2 py-0.5 rounded-full bg-zinc-800 text-zinc-500 border border-zinc-700">{c}</span>
-            ))}
+    <div className={`group relative bg-zinc-900 border border-zinc-800/80 rounded-2xl p-4 transition-all duration-200 hover:border-zinc-700 ${!item.is_available ? 'opacity-40' : ''}`}>
+      <div className="flex items-start gap-4">
+
+        {/* Availability indicator */}
+        <div className={`w-1 self-stretch rounded-full shrink-0 transition-colors ${item.is_available ? 'bg-lime-400/60' : 'bg-zinc-700'}`} />
+
+        {/* Main content */}
+        <div className="flex-1 min-w-0">
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="font-semibold text-white text-sm leading-tight">
+                <InlineField value={item.name} onSave={(v) => onInlineEdit(item, 'name', v)} />
+              </p>
+              <p className="text-lime-400 font-mono text-sm font-bold mt-0.5">
+                <InlineField value={item.price} type="number" prefix="₹" onSave={(v) => onInlineEdit(item, 'price', v)} />
+              </p>
+            </div>
+
+            {/* Actions */}
+            <div className="flex items-center gap-2 shrink-0">
+              <Toggle checked={item.is_available} onChange={() => onToggle(item)} />
+              <button
+                onClick={() => onEdit(item)}
+                className="w-7 h-7 rounded-lg bg-zinc-800 text-zinc-500 flex items-center justify-center text-xs hover:bg-zinc-700 hover:text-white transition-all active:scale-90"
+                title="Edit"
+              >✎</button>
+              <button
+                onClick={() => onDelete(item.id)}
+                className="w-7 h-7 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center text-xs hover:bg-rose-500/20 transition-all active:scale-90"
+                title="Delete"
+              >✕</button>
+            </div>
           </div>
-        )}
-      </div>
-      <div className="flex items-center gap-2 shrink-0">
-        <Toggle checked={item.is_available} onChange={() => onToggle(item)} />
-        <button onClick={() => onDelete(item.id)}
-          className="w-8 h-8 rounded-xl bg-rose-500/10 text-rose-500 flex items-center justify-center text-sm hover:bg-rose-500/20 transition-colors active:scale-90">✕</button>
+
+          {/* Category tags */}
+          {(item.categories ?? []).length > 0 && (
+            <div className="flex flex-wrap gap-1.5 mt-2">
+              {(item.categories ?? []).map((c) => (
+                <span key={c} className={`text-[10px] px-2 py-0.5 rounded-full border font-semibold ${getCatStyle(c)}`}>
+                  {c}
+                </span>
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -604,11 +648,8 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
 
   const allOptions = Array.from(new Set([...SUGGESTED_CATEGORIES, ...existingCategories]))
 
-  const toggleCat = (cat: string) => {
-    setSelectedCats((prev) =>
-      prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat]
-    )
-  }
+  const toggleCat = (cat: string) =>
+    setSelectedCats((prev) => prev.includes(cat) ? prev.filter((c) => c !== cat) : [...prev, cat])
 
   const addCustom = () => {
     const val = customInput.trim()
@@ -644,11 +685,9 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
       <form onSubmit={handleSubmit} className="space-y-3">
         <input value={name} onChange={(e) => setName(e.target.value)} placeholder="Item name"
           className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
-
         <input type="number" min="1" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Price ₹"
           className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
 
-        {/* Category multi-select */}
         <div>
           <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2">
             Categories <span className="text-zinc-700 normal-case font-normal">(select all that apply)</span>
@@ -666,11 +705,10 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
             ))}
           </div>
 
-          {/* Selected tags display */}
           {selectedCats.length > 0 && (
             <div className="flex flex-wrap gap-1.5 mb-2">
               {selectedCats.map((c) => (
-                <span key={c} className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-lime-400/10 border border-lime-400/30 text-lime-400 text-xs font-semibold">
+                <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold ${getCatStyle(c)}`}>
                   {c}
                   <button type="button" onClick={() => toggleCat(c)} className="hover:text-white transition-colors leading-none">×</button>
                 </span>
@@ -678,19 +716,13 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
             </div>
           )}
 
-          {/* Custom category input */}
           <div className="flex gap-2">
-            <input
-              value={customInput}
-              onChange={(e) => setCustomInput(e.target.value)}
+            <input value={customInput} onChange={(e) => setCustomInput(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addCustom() } }}
               placeholder="Type a custom category…"
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
-            />
+              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
             <button type="button" onClick={addCustom}
-              className="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold rounded-xl transition-colors">
-              + Add
-            </button>
+              className="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold rounded-xl transition-colors">+ Add</button>
           </div>
         </div>
 
