@@ -8,7 +8,11 @@ export const getMenuByVendor = (vendor_id: string) =>
 
 export const getAvailableMenuByVendor = (vendor_id: string) =>
   prisma.menuItem.findMany({
-    where: { vendor_id, is_available: true },
+    where: {
+      vendor_id,
+      is_available: true,
+      categories: { isEmpty: false },
+    },
     orderBy: { created_at: 'asc' },
   })
 
