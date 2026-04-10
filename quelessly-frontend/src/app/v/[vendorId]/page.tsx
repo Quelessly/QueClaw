@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import { api } from '@/lib/api'
 import { SkeletonMenuCard } from '@/components/Skeleton'
@@ -66,6 +66,23 @@ export default function MenuPage() {
   const [search, setSearch] = useState('')
   const [vendorName] = useState('the canteen.')
   const [activeOrder, setActiveOrder] = useState<{ orderId: string; total: number } | null>(null)
+  const [headerHidden, setHeaderHidden] = useState(false)
+  const lastScrollY = useRef(0)
+
+  useEffect(() => {
+    const onScroll = () => {
+      const curr = window.scrollY
+      // Only hide after scrolling down 80px, show immediately on scroll up
+      if (curr > lastScrollY.current && curr > 80) {
+        setHeaderHidden(true)
+      } else {
+        setHeaderHidden(false)
+      }
+      lastScrollY.current = curr
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
 
   useEffect(() => {
     api.get(`/menu/public/${vendorId}`).then(res => { if (res.success) setItems(res.data) }).finally(() => setLoading(false))
@@ -104,19 +121,24 @@ export default function MenuPage() {
     <>
       <div className="min-h-screen bg-zinc-950 pb-36">
 
-        {/* Header — sticky, not fixed */}
-        <div className="sticky top-0 z-50 glass px-5 py-3 flex items-center justify-between">
-          <span className="font-display font-bold text-white tracking-tighter text-base lowercase">{vendorName}</span>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
-            <span className="text-xs text-zinc-400 tabular-nums">
-              {loading ? '…' : `${items.filter(i => i.is_available).length} items`}
-            </span>
+        {/* Fixed header with scroll-hide */}
+        <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${headerHidden ? '-translate-y-full' : 'translate-y-0'}`}>
+          <div className="mx-4 mt-4 glass rounded-full px-5 py-3 flex items-center justify-between">
+            <span className="font-display font-bold text-white tracking-tighter text-base lowercase">{vendorName}</span>
+            <div className="flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
+              <span className="text-xs text-zinc-400 tabular-nums">
+                {loading ? '…' : `${items.filter(i => i.is_available).length} items`}
+              </span>
+            </div>
           </div>
         </div>
 
+        {/* Spacer so content starts below the header */}
+        <div className="h-20" />
+
         {/* Search */}
-        <div className="px-4 pt-3 pb-3">
+        <div className="px-4 pb-3">
           <div className="relative">
             <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm pointer-events-none">⌕</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search menu…"
@@ -193,8 +215,6 @@ function MenuCard({ item, qty, onAdd, onRemove }: {
 
   return (
     <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 flex flex-col transition-all duration-200 hover:border-zinc-700 active:scale-[0.98]">
-
-      {/* Square image area */}
       <div className={`${bg} aspect-square flex items-center justify-center relative`}>
         <span className="text-4xl">{icon}</span>
         {(isVeg || isNonVeg) && (
@@ -203,8 +223,6 @@ function MenuCard({ item, qty, onAdd, onRemove }: {
           </div>
         )}
       </div>
-
-      {/* Card info */}
       <div className="p-3 flex flex-col gap-2 flex-1">
         <div>
           <p className="font-semibold text-white text-sm leading-tight line-clamp-2">{item.name}</p>
