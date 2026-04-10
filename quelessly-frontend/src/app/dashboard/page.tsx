@@ -14,21 +14,20 @@ interface MenuItem { id: string; name: string; price: string; categories: string
 type Tab = 'orders' | 'menu' | 'qr'
 
 const STATUS_FLOW: Record<string, string> = { paid: 'preparing', preparing: 'ready', ready: 'completed' }
+
 const ACTION_LABEL: Record<string, { label: string; style: string }> = {
   paid:      { label: 'Start Cooking',  style: 'bg-zinc-800 text-white hover:bg-zinc-700' },
   preparing: { label: 'Mark Ready ✓',  style: 'bg-lime-400 text-black hover:bg-lime-300' },
   ready:     { label: 'Mark Completed', style: 'bg-zinc-800 text-white hover:bg-zinc-700' },
 }
-const STATUS_BADGE: Record<string, string> = {
-  pending:   'bg-amber-500/15 text-amber-400 border border-amber-500/20',
-  paid:      'bg-blue-500/15 text-blue-400 border border-blue-500/20',
-  preparing: 'bg-orange-500/15 text-orange-400 border border-orange-500/20',
-  ready:     'bg-lime-500/15 text-lime-400 border border-lime-500/20',
-  completed: 'bg-zinc-800 text-zinc-500 border border-zinc-700',
-  cancelled: 'bg-rose-500/15 text-rose-400 border border-rose-500/20',
-}
-const STATUS_LABEL: Record<string, string> = {
-  pending: 'Pending', paid: 'Paid', preparing: 'Preparing', ready: 'Ready', completed: 'Done', cancelled: 'Cancelled',
+
+const STATUS_CONFIG: Record<string, { badge: string; bar: string; label: string }> = {
+  pending:   { badge: 'bg-amber-500/15 text-amber-400 border border-amber-500/20',   bar: 'bg-amber-500',  label: 'Pending'    },
+  paid:      { badge: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',      bar: 'bg-blue-500',   label: 'Paid'       },
+  preparing: { badge: 'bg-orange-500/15 text-orange-400 border border-orange-500/20', bar: 'bg-orange-500', label: 'Cooking'    },
+  ready:     { badge: 'bg-lime-500/15 text-lime-400 border border-lime-500/20',       bar: 'bg-lime-400',   label: 'Ready ✓'   },
+  completed: { badge: 'bg-zinc-800 text-zinc-500 border border-zinc-700',             bar: 'bg-zinc-700',   label: 'Done'       },
+  cancelled: { badge: 'bg-rose-500/15 text-rose-400 border border-rose-500/20',       bar: 'bg-rose-500',   label: 'Cancelled'  },
 }
 
 const SUGGESTED_CATEGORIES = ['Veg', 'Non-Veg', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Desserts']
@@ -48,6 +47,33 @@ const CAT_COLOR: Record<string, string> = {
   'Desserts':  'bg-pink-500/10 text-pink-400 border-pink-500/20',
 }
 const getCatStyle = (cat: string) => CAT_COLOR[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
+
+function formatDateLabel(dateStr: string): string {
+  const date = new Date(dateStr)
+  const today = new Date()
+  const yesterday = new Date()
+  yesterday.setDate(today.getDate() - 1)
+
+  const isSameDay = (a: Date, b: Date) =>
+    a.getDate() === b.getDate() && a.getMonth() === b.getMonth() && a.getFullYear() === b.getFullYear()
+
+  if (isSameDay(date, today)) return 'Today'
+  if (isSameDay(date, yesterday)) return 'Yesterday'
+
+  return date.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })
+}
+
+function groupOrdersByDate(orders: Order[]): { label: string; orders: Order[] }[] {
+  const groups: Record<string, Order[]> = {}
+  for (const order of orders) {
+    const label = formatDateLabel(order.created_at)
+    if (!groups[label]) groups[label] = []
+    groups[label].push(order)
+  }
+  return Object.entries(groups).map(([label, orders]) => ({ label, orders }))
+}
+
+// ─── Root ─────────────────────────────────────────────────────────────────────
 
 export default function DashboardPage() {
   const { toasts, toast } = useToast()
@@ -74,10 +100,14 @@ export default function DashboardPage() {
   return (
     <>
       <Toaster toasts={toasts} />
-      {!token ? <LoginScreen onLogin={handleLogin} toast={toast} /> : <DashboardShell token={token} vendor={vendor} onLogout={handleLogout} toast={toast} />}
+      {!token
+        ? <LoginScreen onLogin={handleLogin} toast={toast} />
+        : <DashboardShell token={token} vendor={vendor} onLogout={handleLogout} toast={toast} />}
     </>
   )
 }
+
+// ─── Login ────────────────────────────────────────────────────────────────────
 
 function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => void; toast: (m: string, type?: any) => void }) {
   const [email, setEmail] = useState('')
@@ -127,6 +157,8 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
   )
 }
 
+// ─── Shell ────────────────────────────────────────────────────────────────────
+
 function DashboardShell({ token, vendor, onLogout, toast }: { token: string; vendor: Vendor | null; onLogout: () => void; toast: (m: string, type?: any) => void }) {
   const [tab, setTab] = useState<Tab>('orders')
   const [orders, setOrders] = useState<Order[]>([])
@@ -164,6 +196,7 @@ function DashboardShell({ token, vendor, onLogout, toast }: { token: string; ven
 
   const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status))
   const pastOrders = orders.filter(o => ['completed', 'cancelled'].includes(o.status))
+
   const TABS: { key: Tab; icon: string; label: string; badge?: number }[] = [
     { key: 'orders', icon: '◈', label: 'Orders', badge: activeOrders.length || undefined },
     { key: 'menu', icon: '⊞', label: 'Menu' },
@@ -204,6 +237,7 @@ function DashboardShell({ token, vendor, onLogout, toast }: { token: string; ven
           )}
           <button onClick={onLogout} className="md:hidden text-zinc-600 text-xs border border-zinc-800 px-3 py-1.5 rounded-full hover:text-zinc-300 transition-colors">Logout</button>
         </div>
+
         <div className="px-4 py-4">
           {tab === 'orders' && <OrdersTab activeOrders={activeOrders} pastOrders={pastOrders} loading={ordersLoading} newOrderIds={newOrderIds} onUpdateStatus={updateStatus} />}
           {tab === 'menu' && <MenuTab token={token} toast={toast} />}
@@ -226,16 +260,32 @@ function DashboardShell({ token, vendor, onLogout, toast }: { token: string; ven
   )
 }
 
+// ─── Orders Tab ───────────────────────────────────────────────────────────────
+
 function OrdersTab({ activeOrders, pastOrders, loading, newOrderIds, onUpdateStatus }: {
   activeOrders: Order[]; pastOrders: Order[]; loading: boolean; newOrderIds: Set<string>; onUpdateStatus: (id: string, status: string) => void
 }) {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
+  const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+
   const handleUpdate = async (id: string, status: string) => { setUpdatingId(id); await onUpdateStatus(id, status); setUpdatingId(null) }
+
+  const toggleGroup = (label: string) => {
+    setCollapsedGroups(prev => {
+      const next = new Set(prev)
+      next.has(label) ? next.delete(label) : next.add(label)
+      return next
+    })
+  }
 
   if (loading) return <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
 
+  const pastGroups = groupOrdersByDate(pastOrders)
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
+
+      {/* ── Active orders ── */}
       <section>
         {activeOrders.length === 0 ? (
           <div className="glass rounded-4xl p-12 text-center">
@@ -245,21 +295,53 @@ function OrdersTab({ activeOrders, pastOrders, loading, newOrderIds, onUpdateSta
           </div>
         ) : (
           <div className="space-y-3">
-            {activeOrders.map(order => <OrderCard key={order.id} order={order} isNew={newOrderIds.has(order.id)} updating={updatingId === order.id} onUpdate={handleUpdate} />)}
+            {activeOrders.map(order => (
+              <OrderCard key={order.id} order={order} isNew={newOrderIds.has(order.id)} updating={updatingId === order.id} onUpdate={handleUpdate} />
+            ))}
           </div>
         )}
       </section>
-      {pastOrders.length > 0 && (
-        <section>
-          <p className="text-xs font-bold text-zinc-700 uppercase tracking-widest mb-3">Past Orders</p>
-          <div className="space-y-3">
-            {pastOrders.slice(0, 15).map(order => <OrderCard key={order.id} order={order} isNew={false} updating={false} onUpdate={handleUpdate} />)}
-          </div>
+
+      {/* ── Past orders grouped by date ── */}
+      {pastGroups.length > 0 && (
+        <section className="space-y-3">
+          <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Past Orders</p>
+          {pastGroups.map(({ label, orders }) => (
+            <div key={label} className="bg-zinc-950 border border-zinc-800/60 rounded-2xl overflow-hidden">
+              {/* Group header — clickable to collapse */}
+              <button
+                onClick={() => toggleGroup(label)}
+                className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-900/50 transition-colors"
+              >
+                <div className="flex items-center gap-3">
+                  <span className="text-sm font-bold text-white">{label}</span>
+                  <span className="text-xs text-zinc-600 font-mono bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
+                    {orders.length} order{orders.length !== 1 ? 's' : ''}
+                  </span>
+                  <span className="text-xs text-zinc-600 font-mono">
+                    ₹{orders.reduce((s, o) => s + Number(o.total_amount), 0)}
+                  </span>
+                </div>
+                <span className={`text-zinc-600 text-xs transition-transform duration-200 ${collapsedGroups.has(label) ? '' : 'rotate-180'}`}>▼</span>
+              </button>
+
+              {/* Group orders */}
+              {!collapsedGroups.has(label) && (
+                <div className="px-3 pb-3 space-y-2">
+                  {orders.map(order => (
+                    <PastOrderCard key={order.id} order={order} />
+                  ))}
+                </div>
+              )}
+            </div>
+          ))}
         </section>
       )}
     </div>
   )
 }
+
+// ─── Active Order Card ────────────────────────────────────────────────────────
 
 function useSLA(createdAt: string, status: string): boolean {
   const [elapsed, setElapsed] = useState(Date.now() - new Date(createdAt).getTime())
@@ -271,36 +353,70 @@ function useSLA(createdAt: string, status: string): boolean {
   return ['paid', 'preparing'].includes(status) && elapsed > 5 * 60 * 1000
 }
 
-function OrderCard({ order, isNew, updating, onUpdate }: { order: Order; isNew: boolean; updating: boolean; onUpdate: (id: string, status: string) => void }) {
+function OrderCard({ order, isNew, updating, onUpdate }: {
+  order: Order; isNew: boolean; updating: boolean; onUpdate: (id: string, status: string) => void
+}) {
   const sla = useSLA(order.created_at, order.status)
   const next = STATUS_FLOW[order.status]
   const action = next ? ACTION_LABEL[order.status] : null
+  const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending
   const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const itemCount = order.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0
 
   return (
-    <div className={`bg-zinc-900 rounded-3xl overflow-hidden border transition-all duration-300 ${isNew ? 'border-lime-400/50 shadow-[0_0_20px_rgba(163,230,53,0.1)]' : sla ? 'sla-alert border-rose-500' : 'border-zinc-800'}`}>
-      {isNew && <div className="bg-lime-400 text-black text-xs font-black text-center py-1.5 tracking-widest uppercase">✦ New Order</div>}
-      {sla && !isNew && <div className="bg-rose-500/10 text-rose-400 text-xs font-bold text-center py-1.5 tracking-widest uppercase border-b border-rose-500/20">⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m</div>}
+    <div className={`bg-zinc-900 rounded-3xl overflow-hidden border transition-all duration-300 ${
+      isNew ? 'border-lime-400/50 shadow-[0_0_24px_rgba(163,230,53,0.12)]' : sla ? 'border-rose-500/60' : 'border-zinc-800'
+    }`}>
+      {/* Status bar — colored top strip */}
+      <div className={`h-1 w-full ${cfg.bar}`} />
+
+      {isNew && (
+        <div className="bg-lime-400 text-black text-xs font-black text-center py-1.5 tracking-widest uppercase">
+          ✦ New Order
+        </div>
+      )}
+      {sla && !isNew && (
+        <div className="bg-rose-500/10 text-rose-400 text-xs font-bold text-center py-1.5 tracking-widest uppercase border-b border-rose-500/20">
+          ⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m
+        </div>
+      )}
+
       <div className="p-5">
+        {/* Header row */}
         <div className="flex items-start justify-between mb-4">
           <div>
-            <p className="font-display font-bold text-white text-lg tracking-tighter">#{order.id.slice(0, 8).toUpperCase()}</p>
-            <p className="text-zinc-600 text-xs font-mono mt-0.5">{time}</p>
+            <div className="flex items-baseline gap-2">
+              <span className="text-zinc-600 font-mono text-sm">#</span>
+              <p className="font-display font-black text-white text-2xl tracking-tighter leading-none">
+                {order.id.slice(0, 8).toUpperCase()}
+              </p>
+            </div>
+            <div className="flex items-center gap-2 mt-1.5">
+              <span className="text-zinc-500 text-xs font-mono">{time}</span>
+              <span className="w-1 h-1 rounded-full bg-zinc-700" />
+              <span className="text-zinc-500 text-xs">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+            </div>
           </div>
-          <span className={`text-xs font-bold px-2.5 py-1 rounded-full ${STATUS_BADGE[order.status] ?? STATUS_BADGE.pending}`}>{STATUS_LABEL[order.status] ?? order.status}</span>
+          <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
         </div>
-        <div className="bg-zinc-800/50 rounded-xl p-3 mb-4 font-mono text-sm space-y-0.5">
-          {order.order_items?.map(item => (
-            <div key={item.id} className="flex justify-between">
-              <span className="text-zinc-300"><span className="text-zinc-500">×{item.quantity}</span> {item.menu_item?.name}</span>
-              <span className="text-zinc-400">₹{Number(item.price) * item.quantity}</span>
+
+        {/* Items list */}
+        <div className="bg-zinc-800/40 rounded-2xl overflow-hidden mb-4">
+          {order.order_items?.map((item, idx) => (
+            <div key={item.id} className={`flex items-center gap-3 px-4 py-2.5 ${idx !== 0 ? 'border-t border-zinc-800/60' : ''}`}>
+              <span className="w-6 h-6 rounded-lg bg-zinc-700 text-white text-xs font-black flex items-center justify-center shrink-0">
+                {item.quantity}
+              </span>
+              <span className="text-white text-sm font-medium flex-1">{item.menu_item?.name}</span>
+              <span className="text-zinc-400 text-sm font-mono">₹{Number(item.price) * item.quantity}</span>
             </div>
           ))}
-          <div className="border-t border-zinc-700/50 mt-1.5 pt-1.5 flex justify-between font-bold">
-            <span className="text-zinc-400">total</span>
-            <span className="text-lime-400">₹{Number(order.total_amount)}</span>
+          <div className="flex items-center justify-between px-4 py-2.5 border-t border-zinc-700/60 bg-zinc-800/40">
+            <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Total</span>
+            <span className="text-lime-400 font-black text-lg font-mono">₹{Number(order.total_amount)}</span>
           </div>
         </div>
+
         {action && (
           <button onClick={() => onUpdate(order.id, next!)} disabled={updating}
             className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 disabled:opacity-50 active:scale-[0.98] flex items-center justify-center gap-2 ${action.style}`}>
@@ -308,6 +424,57 @@ function OrderCard({ order, isNew, updating, onUpdate }: { order: Order; isNew: 
           </button>
         )}
       </div>
+    </div>
+  )
+}
+
+// ─── Past Order Card (compact) ────────────────────────────────────────────────
+
+function PastOrderCard({ order }: { order: Order }) {
+  const [expanded, setExpanded] = useState(false)
+  const cfg = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.completed
+  const time = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const itemCount = order.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0
+
+  return (
+    <div className="bg-zinc-900 border border-zinc-800/60 rounded-xl overflow-hidden">
+      {/* Compact row — always visible */}
+      <button onClick={() => setExpanded(v => !v)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-zinc-800/30 transition-colors">
+        <div className={`w-1.5 h-8 rounded-full shrink-0 ${cfg.bar}`} />
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2">
+            <span className="text-zinc-500 text-xs font-mono">#</span>
+            <span className="text-white font-bold text-sm font-mono tracking-tight">{order.id.slice(0, 8).toUpperCase()}</span>
+            <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
+          </div>
+          <div className="flex items-center gap-1.5 mt-0.5">
+            <span className="text-zinc-600 text-xs">{time}</span>
+            <span className="text-zinc-700">·</span>
+            <span className="text-zinc-600 text-xs">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+          </div>
+        </div>
+        <div className="flex items-center gap-3 shrink-0">
+          <span className="text-white font-bold font-mono text-sm">₹{Number(order.total_amount)}</span>
+          <span className={`text-zinc-600 text-xs transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
+        </div>
+      </button>
+
+      {/* Expanded items */}
+      {expanded && (
+        <div className="px-4 pb-3 border-t border-zinc-800/60">
+          <div className="mt-2 space-y-1">
+            {order.order_items?.map(item => (
+              <div key={item.id} className="flex items-center gap-3 py-1.5">
+                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-400 text-[10px] font-bold flex items-center justify-center shrink-0">
+                  {item.quantity}
+                </span>
+                <span className="text-zinc-300 text-xs flex-1">{item.menu_item?.name}</span>
+                <span className="text-zinc-500 text-xs font-mono">₹{Number(item.price) * item.quantity}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -370,7 +537,6 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
       ) : (
         allCats.map(cat => (
           <section key={cat}>
-            {/* Category header */}
             <div className="flex items-center gap-3 mb-3">
               <span className="text-base">{CAT_ICON[cat] ?? '🍴'}</span>
               <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{cat}</p>
@@ -379,7 +545,6 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
                 {items.filter(i => (i.categories ?? []).includes(cat)).length}
               </span>
             </div>
-            {/* ── Grid of cards ── */}
             <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
               {items.filter(i => (i.categories ?? []).includes(cat)).map(item => (
                 <MenuItemCard key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete}
@@ -426,7 +591,6 @@ function InlineField({ value, type = 'text', prefix = '', onSave }: { value: str
   )
 }
 
-// ── NEW: compact square card for vendor dashboard ──
 function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
   item: MenuItem; onToggle: (i: MenuItem) => void; onDelete: (id: string) => void
   onEdit: (i: MenuItem) => void; onInlineEdit: (i: MenuItem, field: 'name' | 'price', value: string) => void
@@ -435,26 +599,18 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
   const isNonVeg = (item.categories ?? []).includes('Non-Veg')
 
   return (
-    <div className={`relative bg-zinc-900 border rounded-2xl overflow-hidden transition-all duration-200 group ${!item.is_available ? 'opacity-50 border-zinc-800' : 'border-zinc-800 hover:border-zinc-600'}`}>
-
-      {/* Top color band with emoji */}
+    <div className={`relative bg-zinc-900 border rounded-2xl overflow-hidden transition-all duration-200 ${!item.is_available ? 'opacity-50 border-zinc-800' : 'border-zinc-800 hover:border-zinc-600'}`}>
       <div className="h-20 bg-zinc-800 flex items-center justify-center relative">
         <span className="text-3xl">{CAT_ICON[(item.categories ?? [])[0]] ?? '🍴'}</span>
-
-        {/* Veg / Non-veg dot — top left */}
         {(isVeg || isNonVeg) && (
           <div className={`absolute top-2 left-2 w-4 h-4 rounded flex items-center justify-center border ${isVeg ? 'border-emerald-500 bg-zinc-900/80' : 'border-rose-500 bg-zinc-900/80'}`}>
             <div className={`w-2 h-2 rounded-full ${isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
           </div>
         )}
-
-        {/* Availability toggle — top right */}
         <div className="absolute top-2 right-2">
           <Toggle checked={item.is_available} onChange={() => onToggle(item)} />
         </div>
       </div>
-
-      {/* Card body */}
       <div className="p-2.5">
         <p className="font-semibold text-white text-xs leading-tight truncate">
           <InlineField value={item.name} onSave={v => onInlineEdit(item, 'name', v)} />
@@ -462,17 +618,9 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
         <p className="text-lime-400 font-mono font-bold text-xs mt-0.5">
           <InlineField value={item.price} type="number" prefix="₹" onSave={v => onInlineEdit(item, 'price', v)} />
         </p>
-
-        {/* Bottom action row */}
         <div className="flex items-center justify-end gap-1 mt-2">
-          <button onClick={() => onEdit(item)}
-            className="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] hover:bg-zinc-700 hover:text-white transition-all active:scale-90">
-            ✎
-          </button>
-          <button onClick={() => onDelete(item.id)}
-            className="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center text-[10px] hover:bg-rose-500/20 transition-all active:scale-90">
-            ✕
-          </button>
+          <button onClick={() => onEdit(item)} className="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] hover:bg-zinc-700 hover:text-white transition-all active:scale-90">✎</button>
+          <button onClick={() => onDelete(item.id)} className="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center text-[10px] hover:bg-rose-500/20 transition-all active:scale-90">✕</button>
         </div>
       </div>
     </div>
