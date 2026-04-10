@@ -136,9 +136,11 @@ export default function HomePage() {
 
       {/* NAV */}
       <nav className="nav">
-        <Link href="/" style={{ fontWeight:800, fontSize:18, letterSpacing:'-0.5px', textDecoration:'none', color:'#fff' }}>
-          quelessly<span style={{ color:'var(--lime)' }}>.</span>
-        </Link>
+        <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+          style={{ fontWeight:800, fontSize:18, letterSpacing:'-0.5px', background:'none', border:'none', color:'#fff', cursor:'pointer' }}>
+            quelessly<span style={{ color:'var(--lime)' }}>.</span>
+        </button>
+        
         <Link href="/dashboard" className="btn-ghost" style={{ padding:'7px 16px', fontSize:13 }}>Vendor login</Link>
       </nav>
 
@@ -340,7 +342,12 @@ export default function HomePage() {
       {/* FOOTER */}
       <footer style={{ borderTop:'1px solid rgba(255,255,255,0.04)', padding:'22px 20px' }}>
         <div className="footer-row" style={{ maxWidth:1100, margin:'0 auto', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:16 }}>
-          <Link href="/" style={{ fontWeight:800, fontSize:15, letterSpacing:'-0.3px', textDecoration:'none', color:'#fff' }}>quelessly<span style={{ color:'var(--lime)' }}>.</span></Link>
+          <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} 
+          style={{ fontWeight:800, fontSize:15, letterSpacing:'-0.3px', background:'none', border:'none', color:'#fff', cursor:'pointer' }}>
+            quelessly<span style={{ color:'var(--lime)' }}>.</span>
+          </button>
+
+
           <div style={{ display:'flex', gap:18, flexWrap:'wrap' }}>
             {[['About','/about'],['Terms','/terms'],['Privacy','/privacy'],['Refunds','/refunds'],['Contact','/contact']].map(([l,h])=>(
               <Link key={l} href={h} style={{ fontSize:12, color:'#333', textDecoration:'none', transition:'color 0.2s', fontFamily:"'DM Sans',sans-serif" }}
