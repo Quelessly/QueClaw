@@ -15,19 +15,19 @@ type Tab = 'orders' | 'menu' | 'qr' | 'settings'
 
 const STATUS_FLOW: Record<string, string> = { paid: 'preparing', preparing: 'ready', ready: 'completed' }
 
-const ACTION_LABEL: Record<string, { label: string; style: string }> = {
-  paid:      { label: 'Start Cooking',  style: 'bg-zinc-800 text-white hover:bg-zinc-700' },
-  preparing: { label: 'Mark Ready ✓',  style: 'bg-lime-400 text-black hover:bg-lime-300' },
-  ready:     { label: 'Mark Completed', style: 'bg-zinc-800 text-white hover:bg-zinc-700' },
+const ACTION_LABEL: Record<string, { label: string; bg: string; color: string }> = {
+  paid:      { label: 'Start Cooking',  bg: '#27272a', color: '#fff' },
+  preparing: { label: 'Mark Ready ✓',  bg: '#ff6b00', color: '#fff' },
+  ready:     { label: 'Mark Completed', bg: '#27272a', color: '#fff' },
 }
 
 const STATUS_CONFIG: Record<string, { badge: string; bar: string; label: string }> = {
   pending:   { badge: 'bg-amber-500/15 text-amber-400 border border-amber-500/20',    bar: 'bg-amber-500',  label: 'Pending'   },
   paid:      { badge: 'bg-blue-500/15 text-blue-400 border border-blue-500/20',       bar: 'bg-blue-500',   label: 'Paid'      },
   preparing: { badge: 'bg-orange-500/15 text-orange-400 border border-orange-500/20', bar: 'bg-orange-500', label: 'Cooking'   },
-  ready:     { badge: 'bg-lime-500/15 text-lime-400 border border-lime-500/20',        bar: 'bg-lime-400',   label: 'Ready ✓'  },
-  completed: { badge: 'bg-zinc-800 text-zinc-500 border border-zinc-700',              bar: 'bg-zinc-700',   label: 'Done'      },
-  cancelled: { badge: 'bg-rose-500/15 text-rose-400 border border-rose-500/20',        bar: 'bg-rose-500',   label: 'Cancelled' },
+  ready:     { badge: 'bg-orange-400/15 text-orange-300 border border-orange-400/20', bar: 'bg-orange-400', label: 'Ready ✓'  },
+  completed: { badge: 'bg-zinc-800 text-zinc-500 border border-zinc-700',             bar: 'bg-zinc-700',   label: 'Done'      },
+  cancelled: { badge: 'bg-rose-500/15 text-rose-400 border border-rose-500/20',       bar: 'bg-rose-500',   label: 'Cancelled' },
 }
 
 const SUGGESTED_CATEGORIES = ['Veg', 'Non-Veg', 'Breakfast', 'Lunch', 'Dinner', 'Snacks', 'Drinks', 'Desserts']
@@ -42,11 +42,13 @@ const CAT_COLOR: Record<string, string> = {
   'Breakfast': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
   'Lunch':     'bg-orange-500/10 text-orange-400 border-orange-500/20',
   'Dinner':    'bg-violet-500/10 text-violet-400 border-violet-500/20',
-  'Snacks':    'bg-lime-500/10 text-lime-400 border-lime-500/20',
+  'Snacks':    'bg-orange-400/10 text-orange-300 border-orange-400/20',
   'Drinks':    'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
   'Desserts':  'bg-pink-500/10 text-pink-400 border-pink-500/20',
 }
 const getCatStyle = (cat: string) => CAT_COLOR[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
+
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
 
 function formatDateLabel(dateStr: string): string {
   const date = new Date(dateStr)
@@ -122,34 +124,40 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-5">
-      <div className="w-full max-w-sm animate-slide-up">
-        <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-lime-400 rounded-3xl mx-auto mb-5 flex items-center justify-center glow-lime">
-            <span className="text-black font-black text-3xl font-display">Q</span>
+    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px', fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{FONTS}</style>
+      <div style={{ width: '100%', maxWidth: 360 }}>
+        <div style={{ textAlign: 'center', marginBottom: 40 }}>
+          <div style={{ width: 64, height: 64, background: '#ff6b00', borderRadius: 16, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff' }}>Q</span>
           </div>
-          <h1 className="text-3xl font-display font-bold text-white tracking-tighter">quelessly.</h1>
-          <p className="text-zinc-500 text-sm mt-1">Vendor Command Center</p>
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff', letterSpacing: '-1px', margin: 0 }}>quelessly.</h1>
+          <p style={{ color: '#52525b', fontSize: 13, marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>Vendor Command Center</p>
         </div>
-        <div className="glass rounded-4xl p-6">
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 20, padding: 24 }}>
+          <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
             <div>
-              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Email</label>
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8, fontFamily: "'DM Mono', monospace" }}>Email</label>
               <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" placeholder="you@canteen.com"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 focus:ring-1 focus:ring-lime-400/20 transition-all" />
+                style={{ width: '100%', background: '#18181b', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                onBlur={e => e.target.style.borderColor = '#27272a'} />
             </div>
             <div>
-              <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Password</label>
+              <label style={{ display: 'block', fontSize: 10, fontWeight: 600, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8, fontFamily: "'DM Mono', monospace" }}>Password</label>
               <input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" placeholder="••••••••"
-                className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 focus:ring-1 focus:ring-lime-400/20 transition-all" />
+                style={{ width: '100%', background: '#18181b', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' }}
+                onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                onBlur={e => e.target.style.borderColor = '#27272a'} />
             </div>
             <button type="submit" disabled={loading}
-              className="w-full mt-2 bg-lime-400 text-black py-3.5 rounded-full font-bold disabled:opacity-50 glow-lime-sm active:scale-[0.98] transition-all duration-300 flex items-center justify-center gap-2">
-              {loading ? <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />Signing in…</> : 'Sign in →'}
+              style={{ marginTop: 4, background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 0', fontWeight: 700, fontSize: 15, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1, transition: 'all 0.15s' }}>
+              {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Signing in…</> : 'Sign in →'}
             </button>
           </form>
         </div>
       </div>
+      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
@@ -201,114 +209,116 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
   const TABS: { key: Tab; icon: React.ReactNode; label: string; badge?: number }[] = [
     {
       key: 'orders', label: 'Orders', badge: activeOrders.length || undefined,
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/>
-          <rect x="9" y="3" width="6" height="4" rx="1"/>
-          <path d="M9 12h6M9 16h4"/>
-        </svg>
-      ),
+      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2"/><rect x="9" y="3" width="6" height="4" rx="1"/><path d="M9 12h6M9 16h4"/></svg>,
     },
     {
       key: 'menu', label: 'Menu',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <path d="M12 2a7 7 0 017 7c0 3.5-2 6-4 8H9c-2-2-4-4.5-4-8a7 7 0 017-7z"/>
-          <path d="M9 21h6M10 17v4M14 17v4"/>
-        </svg>
-      ),
+      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2a7 7 0 017 7c0 3.5-2 6-4 8H9c-2-2-4-4.5-4-8a7 7 0 017-7z"/><path d="M9 21h6M10 17v4M14 17v4"/></svg>,
     },
     {
       key: 'qr', label: 'QR',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <rect x="3" y="3" width="7" height="7" rx="1"/>
-          <rect x="14" y="3" width="7" height="7" rx="1"/>
-          <rect x="3" y="14" width="7" height="7" rx="1"/>
-          <path d="M14 14h3v3M17 17h3M20 14v3"/>
-        </svg>
-      ),
+      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3M17 17h3M20 14v3"/></svg>,
     },
     {
       key: 'settings', label: 'Settings',
-      icon: (
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-          <circle cx="12" cy="12" r="3"/>
-          <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/>
-        </svg>
-      ),
+      icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-2 2 2 2 0 01-2-2v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 01-2-2 2 2 0 012-2h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 010-2.83 2 2 0 012.83 0l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 012-2 2 2 0 012 2v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 0 2 2 0 010 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 012 2 2 2 0 01-2 2h-.09a1.65 1.65 0 00-1.51 1z"/></svg>,
     },
   ]
 
+  const tabLabel = tab === 'orders' ? 'orders.' : tab === 'menu' ? 'menu.' : tab === 'qr' ? 'qr code.' : 'settings.'
+
   return (
-    <div className="min-h-screen bg-black flex">
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 bg-zinc-950 border-r border-zinc-900 flex-col items-center py-8 gap-2 z-40">
-        <div className="w-10 h-10 bg-lime-400 rounded-2xl flex items-center justify-center mb-6 glow-lime-sm">
-          <span className="text-black font-black text-lg font-display">Q</span>
+    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`
+        ${FONTS}
+        @keyframes spin { to { transform: rotate(360deg); } }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        .dash-sidebar-btn { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; transition:all 0.2s; }
+        .dash-sidebar-btn:hover { background:#18181b !important; color:#d4d4d8 !important; }
+      `}</style>
+
+      {/* Desktop sidebar */}
+      <aside style={{ display: 'none' }} className="md-sidebar">
+        <style>{`
+          @media(min-width:768px){
+            .md-sidebar { display:flex !important; position:fixed; left:0; top:0; bottom:0; width:80px; background:#0a0a0a; borderRight:1px solid #18181b; flexDirection:column; alignItems:center; padding:32px 0; gap:8px; zIndex:40; }
+            .md-main { margin-left:80px !important; }
+            .md-bottomnav { display:none !important; }
+            .md-logout-mobile { display:none !important; }
+          }
+        `}</style>
+        {/* Logo */}
+        <div style={{ width: 40, height: 40, background: '#ff6b00', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+          <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#fff' }}>Q</span>
         </div>
         {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} title={t.label}
-            className={`relative w-12 h-12 rounded-2xl flex items-center justify-center transition-all duration-200 ${tab === t.key ? 'bg-lime-400/10 text-lime-400 shadow-[0_0_12px_rgba(163,230,53,0.15)]' : 'text-zinc-600 hover:text-zinc-300 hover:bg-zinc-900'}`}>
+          <button key={t.key} onClick={() => setTab(t.key)} title={t.label} className="dash-sidebar-btn"
+            style={{ background: tab === t.key ? 'rgba(255,107,0,0.12)' : 'transparent', color: tab === t.key ? '#ff6b00' : '#52525b', position: 'relative' }}>
             {t.icon}
-            {t.badge !== undefined && <span className="absolute -top-1 -right-1 w-4 h-4 bg-lime-400 text-black text-[10px] font-black rounded-full flex items-center justify-center">{t.badge > 9 ? '9+' : t.badge}</span>}
+            {t.badge !== undefined && (
+              <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, background: '#ff6b00', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Mono', monospace" }}>
+                {t.badge > 9 ? '9+' : t.badge}
+              </span>
+            )}
           </button>
         ))}
-        <div className="flex-1" />
-        <button onClick={onLogout} title="Logout" className="w-12 h-12 rounded-2xl flex items-center justify-center text-zinc-700 hover:text-rose-400 hover:bg-zinc-900 transition-all">
+        <div style={{ flex: 1 }} />
+        <button onClick={onLogout} title="Logout" className="dash-sidebar-btn" style={{ background: 'transparent', color: '#3f3f46' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
         </button>
       </aside>
 
-      <main className="flex-1 md:ml-20 pb-24 md:pb-0 min-h-screen bg-black">
-        <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-lg border-b border-zinc-900 px-5 py-4 flex items-center justify-between">
+      {/* Main */}
+      <main className="md-main" style={{ flex: 1, paddingBottom: 96, minHeight: '100vh', background: '#000' }}>
+        {/* Top bar */}
+        <div style={{ position: 'sticky', top: 0, zIndex: 30, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #18181b', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <div>
-            <h2 className="font-display font-bold text-white tracking-tighter">
-              {tab === 'orders' ? 'orders.' : tab === 'menu' ? 'menu.' : tab === 'qr' ? 'qr code.' : 'settings.'}
-            </h2>
+            <h2 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{tabLabel}</h2>
             {tab === 'orders' && (
-              <p className="text-zinc-600 text-xs mt-0.5">
+              <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>
                 {activeOrders.length} active · {pastOrders.length} past
-                {todayOrders.length > 0 && (
-                  <span className="ml-2 text-lime-400/70">· Today: {todayOrders.length} orders · ₹{todayRevenue}</span>
-                )}
+                {todayOrders.length > 0 && <span style={{ color: 'rgba(255,107,0,0.7)', marginLeft: 8 }}>· Today: {todayOrders.length} orders · ₹{todayRevenue}</span>}
               </p>
             )}
-            {vendor && tab !== 'orders' && <p className="text-zinc-600 text-xs mt-0.5 lowercase">{vendor.name}</p>}
+            {vendor && tab !== 'orders' && <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{vendor.name}</p>}
           </div>
-          {tab === 'orders' && activeOrders.length > 0 && (
-            <div className="flex items-center gap-1.5">
-              <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
-              <span className="text-xs text-zinc-500">Live</span>
-            </div>
-          )}
-          <button onClick={onLogout} className="md:hidden text-zinc-600 text-xs border border-zinc-800 px-3 py-1.5 rounded-full hover:text-zinc-300 transition-colors">Logout</button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+            {tab === 'orders' && activeOrders.length > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <span style={{ fontSize: 12, color: '#52525b', fontFamily: "'DM Mono', monospace" }}>Live</span>
+              </div>
+            )}
+            <button onClick={onLogout} className="md-logout-mobile"
+              style={{ fontSize: 12, color: '#52525b', border: '1px solid #27272a', padding: '6px 12px', borderRadius: 8, background: 'transparent', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+              Logout
+            </button>
+          </div>
         </div>
 
-        <div className="px-4 py-4">
-          {tab === 'orders' && (
-            <OrdersTab
-              activeOrders={activeOrders} pastOrders={pastOrders}
-              todayOrders={todayOrders} todayRevenue={todayRevenue}
-              loading={ordersLoading} newOrderIds={newOrderIds}
-              onUpdateStatus={updateStatus}
-            />
-          )}
+        <div style={{ padding: '16px' }}>
+          {tab === 'orders' && <OrdersTab activeOrders={activeOrders} pastOrders={pastOrders} todayOrders={todayOrders} todayRevenue={todayRevenue} loading={ordersLoading} newOrderIds={newOrderIds} onUpdateStatus={updateStatus} />}
           {tab === 'menu'     && <MenuTab token={token} toast={toast} />}
           {tab === 'qr'       && <QRTab vendorId={vendor?.id} vendorName={vendor?.name} />}
           {tab === 'settings' && <SettingsTab vendor={vendor} token={token} toast={toast} onLogout={onLogout} />}
         </div>
       </main>
 
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-900 flex">
+      {/* Mobile bottom nav */}
+      <nav className="md-bottomnav" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40, background: 'rgba(10,10,10,0.97)', backdropFilter: 'blur(20px)', borderTop: '1px solid #18181b', display: 'flex' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            className={`flex-1 flex flex-col items-center justify-center py-3 gap-0.5 relative transition-all duration-200 ${tab === t.key ? 'text-lime-400' : 'text-zinc-600'}`}>
-            {tab === t.key && <span className="absolute top-0 left-1/4 right-1/4 h-0.5 bg-lime-400 rounded-full" />}
+            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '12px 0', gap: 2, background: 'none', border: 'none', cursor: 'pointer', color: tab === t.key ? '#ff6b00' : '#52525b', position: 'relative', transition: 'color 0.2s' }}>
+            {tab === t.key && <span style={{ position: 'absolute', top: 0, left: '25%', right: '25%', height: 2, background: '#ff6b00', borderRadius: '0 0 2px 2px' }} />}
             {t.icon}
-            <span className="text-[9px] font-semibold mt-0.5">{t.label}</span>
-            {t.badge !== undefined && <span className="absolute top-2 right-1/4 w-3.5 h-3.5 bg-lime-400 text-black text-[9px] font-black rounded-full flex items-center justify-center">{t.badge > 9 ? '9+' : t.badge}</span>}
+            <span style={{ fontSize: 9, fontWeight: 600, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{t.label}</span>
+            {t.badge !== undefined && (
+              <span style={{ position: 'absolute', top: 8, right: '25%', width: 14, height: 14, background: '#ff6b00', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                {t.badge > 9 ? '9+' : t.badge}
+              </span>
+            )}
           </button>
         ))}
       </nav>
@@ -326,80 +336,66 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
   const [dismissingId, setDismissingId] = useState<string | null>(null)
 
-  const handleUpdate = async (id: string, status: string) => {
-    setUpdatingId(id); await onUpdateStatus(id, status); setUpdatingId(null)
-  }
-
+  const handleUpdate = async (id: string, status: string) => { setUpdatingId(id); await onUpdateStatus(id, status); setUpdatingId(null) }
   const handleDismiss = async (id: string) => {
     setDismissingId(id)
-    // Small delay so the swipe-out animation plays before the item disappears
     await new Promise(r => setTimeout(r, 320))
     await onUpdateStatus(id, 'cancelled')
     setDismissingId(null)
   }
+  const toggleGroup = (label: string) => setCollapsedGroups(prev => { const next = new Set(prev); next.has(label) ? next.delete(label) : next.add(label); return next })
 
-  const toggleGroup = (label: string) => {
-    setCollapsedGroups(prev => { const next = new Set(prev); next.has(label) ? next.delete(label) : next.add(label); return next })
-  }
-
-  if (loading) return <div className="space-y-3">{Array.from({ length: 3 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
+  if (loading) return <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{Array.from({ length: 3 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
 
   const pastGroups = groupOrdersByDate(pastOrders)
 
   return (
-    <div className="space-y-8">
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 32 }}>
       {todayOrders.length > 0 && (
-        <div className="grid grid-cols-2 gap-3">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-            <p className="text-xs text-zinc-500 mb-1">Today's orders</p>
-            <p className="text-2xl font-black text-white font-mono">{todayOrders.length}</p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+          <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 16, padding: 16 }}>
+            <p style={{ fontSize: 10, color: '#52525b', marginBottom: 4, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: 'uppercase' }}>Today's orders</p>
+            <p style={{ fontSize: 24, fontWeight: 800, color: '#fff', fontFamily: "'DM Mono', monospace", margin: 0 }}>{todayOrders.length}</p>
           </div>
-          <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
-            <p className="text-xs text-zinc-500 mb-1">Today's revenue</p>
-            <p className="text-2xl font-black text-lime-400 font-mono">₹{todayRevenue}</p>
+          <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 16, padding: 16 }}>
+            <p style={{ fontSize: 10, color: '#52525b', marginBottom: 4, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: 'uppercase' }}>Today's revenue</p>
+            <p style={{ fontSize: 24, fontWeight: 800, color: '#ff6b00', fontFamily: "'DM Mono', monospace", margin: 0 }}>₹{todayRevenue}</p>
           </div>
         </div>
       )}
 
       <section>
         {activeOrders.length === 0 ? (
-          <div className="glass rounded-4xl p-12 text-center">
-            <p className="text-zinc-400 font-display font-bold text-lg tracking-tighter">All quiet</p>
-            <p className="text-zinc-600 text-sm mt-1">New orders appear here in real time</p>
+          <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: '48px 24px', textAlign: 'center' }}>
+            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#52525b', margin: '0 0 4px' }}>All quiet</p>
+            <p style={{ color: '#3f3f46', fontSize: 13, fontFamily: "'DM Sans', sans-serif", margin: 0 }}>New orders appear here in real time</p>
           </div>
         ) : (
-          <div className="space-y-3">
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
             {activeOrders.map(order => (
-              <OrderCard
-                key={order.id} order={order}
-                isNew={newOrderIds.has(order.id)}
-                updating={updatingId === order.id}
-                dismissing={dismissingId === order.id}
-                onUpdate={handleUpdate}
-                onDismiss={handleDismiss}
-              />
+              <OrderCard key={order.id} order={order} isNew={newOrderIds.has(order.id)} updating={updatingId === order.id} dismissing={dismissingId === order.id} onUpdate={handleUpdate} onDismiss={handleDismiss} />
             ))}
           </div>
         )}
       </section>
 
       {pastGroups.length > 0 && (
-        <section className="space-y-3">
-          <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Past Orders</p>
+        <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#3f3f46', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>Past Orders</p>
           {pastGroups.map(({ label, orders }) => (
-            <div key={label} className="bg-zinc-950 border border-zinc-800/60 rounded-2xl overflow-hidden">
-              <button onClick={() => toggleGroup(label)} className="w-full flex items-center justify-between px-4 py-3 hover:bg-zinc-900/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <span className="text-sm font-bold text-white">{label}</span>
-                  <span className="text-xs text-zinc-600 font-mono bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
+            <div key={label} style={{ background: '#0a0a0a', border: '1px solid #1c1c1c', borderRadius: 16, overflow: 'hidden' }}>
+              <button onClick={() => toggleGroup(label)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
+                  <span style={{ fontSize: 11, color: '#52525b', fontFamily: "'DM Mono', monospace", background: '#18181b', padding: '2px 8px', borderRadius: 20, border: '1px solid #27272a' }}>
                     {orders.length} order{orders.length !== 1 ? 's' : ''}
                   </span>
-                  <span className="text-xs text-zinc-600 font-mono">₹{orders.reduce((s, o) => s + Number(o.total_amount), 0)}</span>
+                  <span style={{ fontSize: 11, color: '#52525b', fontFamily: "'DM Mono', monospace" }}>₹{orders.reduce((s, o) => s + Number(o.total_amount), 0)}</span>
                 </div>
-                <span className={`text-zinc-600 text-xs transition-transform duration-200 ${collapsedGroups.has(label) ? '' : 'rotate-180'}`}>▼</span>
+                <span style={{ color: '#52525b', fontSize: 11, display: 'inline-block', transform: collapsedGroups.has(label) ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s' }}>▼</span>
               </button>
               {!collapsedGroups.has(label) && (
-                <div className="px-3 pb-3 space-y-2">
+                <div style={{ padding: '0 12px 12px', display: 'flex', flexDirection: 'column', gap: 8 }}>
                   {orders.map(order => <PastOrderCard key={order.id} order={order} />)}
                 </div>
               )}
@@ -411,7 +407,7 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
   )
 }
 
-// ─── Active Order Card with swipe-to-dismiss ───────────────────────────────────
+// ─── Order Card ────────────────────────────────────────────────────────────────
 
 function useSLA(createdAt: string, status: string): boolean {
   const [elapsed, setElapsed] = useState(Date.now() - new Date(createdAt).getTime())
@@ -425,8 +421,7 @@ function useSLA(createdAt: string, status: string): boolean {
 
 function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: {
   order: Order; isNew: boolean; updating: boolean; dismissing: boolean
-  onUpdate: (id: string, status: string) => void
-  onDismiss: (id: string) => void
+  onUpdate: (id: string, status: string) => void; onDismiss: (id: string) => void
 }) {
   const sla       = useSLA(order.created_at, order.status)
   const next      = STATUS_FLOW[order.status]
@@ -436,129 +431,112 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
   const itemCount = order.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0
   const isPending = order.status === 'pending'
 
-  // Swipe state
   const touchStartX = useRef<number | null>(null)
   const [swipeX, setSwipeX] = useState(0)
   const [swiping, setSwiping] = useState(false)
   const DISMISS_THRESHOLD = 80
 
-  const onTouchStart = (e: React.TouchEvent) => {
-    touchStartX.current = e.touches[0].clientX
-    setSwiping(true)
-  }
+  const onTouchStart = (e: React.TouchEvent) => { touchStartX.current = e.touches[0].clientX; setSwiping(true) }
   const onTouchMove = (e: React.TouchEvent) => {
     if (touchStartX.current === null) return
     const delta = e.touches[0].clientX - touchStartX.current
-    // Only allow left swipe on pending orders
     if (isPending && delta < 0) setSwipeX(Math.max(delta, -DISMISS_THRESHOLD - 20))
   }
   const onTouchEnd = () => {
     setSwiping(false)
-    if (swipeX < -DISMISS_THRESHOLD) {
-      onDismiss(order.id)
-    } else {
-      setSwipeX(0)
-    }
+    if (swipeX < -DISMISS_THRESHOLD) { onDismiss(order.id) } else { setSwipeX(0) }
     touchStartX.current = null
   }
-
   const revealed = swipeX < -DISMISS_THRESHOLD / 2
 
+  const borderColor = isNew ? 'rgba(255,107,0,0.4)' : sla ? 'rgba(239,68,68,0.5)' : '#27272a'
+  const boxShadow = isNew ? '0 0 24px rgba(255,107,0,0.1)' : 'none'
+
   return (
-    <div className="relative overflow-hidden rounded-3xl">
-      {/* Dismiss background — only for pending */}
+    <div style={{ position: 'relative', overflow: 'hidden', borderRadius: 16 }}>
       {isPending && (
-        <div className={`absolute inset-y-0 right-0 w-24 flex items-center justify-center rounded-r-3xl transition-all duration-200 ${revealed ? 'bg-rose-500' : 'bg-rose-500/60'}`}>
-          <div className="flex flex-col items-center gap-1">
+        <div style={{ position: 'absolute', inset: '0 0 0 auto', width: 96, display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '0 16px 16px 0', background: revealed ? 'rgb(239,68,68)' : 'rgba(239,68,68,0.6)', transition: 'background 0.2s' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polyline points="3 6 5 6 21 6"/>
-              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
-              <path d="M10 11v6M14 11v6"/>
-              <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+              <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
             </svg>
-            <span className="text-white text-[10px] font-bold">Dismiss</span>
+            <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Dismiss</span>
           </div>
         </div>
       )}
-
-      {/* Card — slides left on swipe */}
       <div
-        className={`bg-zinc-900 rounded-3xl overflow-hidden border transition-all duration-300 ${
-          isNew ? 'border-lime-400/50 shadow-[0_0_24px_rgba(163,230,53,0.12)]' : sla ? 'border-rose-500/60' : 'border-zinc-800'
-        } ${dismissing ? 'opacity-0 -translate-x-full' : ''}`}
         style={{
+          background: '#111', border: `1px solid ${borderColor}`, borderRadius: 16, overflow: 'hidden',
+          boxShadow, opacity: dismissing ? 0 : 1,
           transform: dismissing ? 'translateX(-100%)' : `translateX(${swipeX}px)`,
           transition: swiping ? 'none' : 'transform 0.3s ease, opacity 0.3s ease',
         }}
-        onTouchStart={onTouchStart}
-        onTouchMove={onTouchMove}
-        onTouchEnd={onTouchEnd}
-      >
+        onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
+
         <div className={`h-1 w-full ${cfg.bar}`} />
-        {isNew && <div className="bg-lime-400 text-black text-xs font-black text-center py-1.5 tracking-widest uppercase">✦ New Order</div>}
+        {isNew && (
+          <div style={{ background: '#ff6b00', color: '#fff', fontSize: 11, fontWeight: 800, textAlign: 'center', padding: '6px 0', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace" }}>
+            ✦ New Order
+          </div>
+        )}
         {sla && !isNew && (
-          <div className="bg-rose-500/10 text-rose-400 text-xs font-bold text-center py-1.5 tracking-widest uppercase border-b border-rose-500/20">
+          <div style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', fontSize: 11, fontWeight: 700, textAlign: 'center', padding: '6px 0', letterSpacing: 2, textTransform: 'uppercase', borderBottom: '1px solid rgba(239,68,68,0.2)', fontFamily: "'DM Mono', monospace" }}>
             ⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m
           </div>
         )}
 
-        <div className="p-5">
-          <div className="flex items-start justify-between mb-4">
+        <div style={{ padding: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
-              <div className="flex items-baseline gap-2">
-                <span className="text-zinc-600 font-mono text-sm">#</span>
-                <p className="font-display font-black text-white text-2xl tracking-tighter leading-none">
+              <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
+                <span style={{ color: '#52525b', fontFamily: "'DM Mono', monospace", fontSize: 14 }}>#</span>
+                <p style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, color: '#fff', fontSize: 24, letterSpacing: '-1px', margin: 0 }}>
                   {order.id.slice(0, 8).toUpperCase()}
                 </p>
               </div>
-              <div className="flex items-center gap-2 mt-1.5">
-                <span className="text-zinc-500 text-xs font-mono">{time}</span>
-                <span className="w-1 h-1 rounded-full bg-zinc-700" />
-                <span className="text-zinc-500 text-xs">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>{time}</span>
+                <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#3f3f46', display: 'inline-block' }} />
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
-              {/* Desktop dismiss button — only for pending */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>{cfg.label}</span>
               {isPending && (
-                <button
-                  onClick={() => onDismiss(order.id)}
-                  title="Dismiss order"
-                  className="w-7 h-7 rounded-xl bg-zinc-800 hover:bg-rose-500/20 text-zinc-600 hover:text-rose-400 flex items-center justify-center transition-all active:scale-90"
-                >
-                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/>
-                    <line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
+                <button onClick={() => onDismiss(order.id)} title="Dismiss order"
+                  style={{ width: 28, height: 28, borderRadius: 8, background: '#1c1c1c', border: 'none', color: '#52525b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s' }}
+                  onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = 'rgba(239,68,68,0.15)'; (e.currentTarget as HTMLElement).style.color = '#f87171' }}
+                  onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#1c1c1c'; (e.currentTarget as HTMLElement).style.color = '#52525b' }}>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
               )}
             </div>
           </div>
 
-          <div className="bg-zinc-800/40 rounded-2xl overflow-hidden mb-4">
+          <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
             {order.order_items?.map((item, idx) => (
-              <div key={item.id} className={`flex items-center gap-3 px-4 py-2.5 ${idx !== 0 ? 'border-t border-zinc-800/60' : ''}`}>
-                <span className="w-6 h-6 rounded-lg bg-zinc-700 text-white text-xs font-black flex items-center justify-center shrink-0">{item.quantity}</span>
-                <span className="text-white text-sm font-medium flex-1">{item.menu_item?.name}</span>
-                <span className="text-zinc-400 text-sm font-mono">₹{Number(item.price) * item.quantity}</span>
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: idx !== 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
+                <span style={{ width: 24, height: 24, borderRadius: 6, background: '#27272a', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "'DM Mono', monospace" }}>{item.quantity}</span>
+                <span style={{ color: '#fff', fontSize: 14, fontWeight: 500, flex: 1, fontFamily: "'DM Sans', sans-serif" }}>{item.menu_item?.name}</span>
+                <span style={{ color: '#71717a', fontSize: 13, fontFamily: "'DM Mono', monospace" }}>₹{Number(item.price) * item.quantity}</span>
               </div>
             ))}
-            <div className="flex items-center justify-between px-4 py-2.5 border-t border-zinc-700/60 bg-zinc-800/40">
-              <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Total</span>
-              <span className="text-lime-400 font-black text-lg font-mono">₹{Number(order.total_amount)}</span>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
+              <span style={{ color: '#52525b', fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace" }}>Total</span>
+              <span style={{ color: '#ff6b00', fontWeight: 800, fontSize: 18, fontFamily: "'DM Mono', monospace" }}>₹{Number(order.total_amount)}</span>
             </div>
           </div>
 
           {isPending && (
-            <p className="text-zinc-600 text-xs text-center mb-3">
+            <p style={{ color: '#3f3f46', fontSize: 12, textAlign: 'center', marginBottom: 12, fontFamily: "'DM Sans', sans-serif" }}>
               Waiting for payment · swipe left to dismiss
             </p>
           )}
 
           {action && (
             <button onClick={() => onUpdate(order.id, next!)} disabled={updating}
-              className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 disabled:opacity-50 active:scale-[0.98] flex items-center justify-center gap-2 ${action.style}`}>
-              {updating ? <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />Updating…</> : action.label}
+              style={{ width: '100%', padding: '14px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: action.bg, color: action.color, fontFamily: "'DM Sans', sans-serif", opacity: updating ? 0.6 : 1, transition: 'all 0.15s' }}>
+              {updating ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Updating…</> : action.label}
             </button>
           )}
         </div>
@@ -576,34 +554,34 @@ function PastOrderCard({ order }: { order: Order }) {
   const itemCount = order.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0
 
   return (
-    <div className="bg-zinc-900 border border-zinc-800/60 rounded-xl overflow-hidden">
-      <button onClick={() => setExpanded(v => !v)} className="w-full flex items-center gap-3 px-4 py-3 text-left hover:bg-zinc-800/30 transition-colors">
-        <div className={`w-1.5 h-8 rounded-full shrink-0 ${cfg.bar}`} />
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-zinc-500 text-xs font-mono">#</span>
-            <span className="text-white font-bold text-sm font-mono tracking-tight">{order.id.slice(0, 8).toUpperCase()}</span>
+    <div style={{ background: '#111', border: '1px solid #1c1c1c', borderRadius: 12, overflow: 'hidden' }}>
+      <button onClick={() => setExpanded(v => !v)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 12, padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+        <div className={`w-1.5 h-8 rounded-full shrink-0 ${cfg.bar}`} style={{ width: 4, height: 28, borderRadius: 4, flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>#</span>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: "'DM Mono', monospace" }}>{order.id.slice(0, 8).toUpperCase()}</span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
           </div>
-          <div className="flex items-center gap-1.5 mt-0.5">
-            <span className="text-zinc-600 text-xs">{time}</span>
-            <span className="text-zinc-700">·</span>
-            <span className="text-zinc-600 text-xs">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
+            <span style={{ color: '#52525b', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>{time}</span>
+            <span style={{ color: '#3f3f46' }}>·</span>
+            <span style={{ color: '#52525b', fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
           </div>
         </div>
-        <div className="flex items-center gap-3 shrink-0">
-          <span className="text-white font-bold font-mono text-sm">₹{Number(order.total_amount)}</span>
-          <span className={`text-zinc-600 text-xs transition-transform duration-200 ${expanded ? 'rotate-180' : ''}`}>▼</span>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: "'DM Mono', monospace" }}>₹{Number(order.total_amount)}</span>
+          <span style={{ color: '#52525b', fontSize: 11, display: 'inline-block', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
         </div>
       </button>
       {expanded && (
-        <div className="px-4 pb-3 border-t border-zinc-800/60">
-          <div className="mt-2 space-y-1">
+        <div style={{ padding: '0 16px 12px', borderTop: '1px solid #1c1c1c' }}>
+          <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {order.order_items?.map(item => (
-              <div key={item.id} className="flex items-center gap-3 py-1.5">
-                <span className="w-5 h-5 rounded-md bg-zinc-800 text-zinc-400 text-[10px] font-bold flex items-center justify-center shrink-0">{item.quantity}</span>
-                <span className="text-zinc-300 text-xs flex-1">{item.menu_item?.name}</span>
-                <span className="text-zinc-500 text-xs font-mono">₹{Number(item.price) * item.quantity}</span>
+              <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 0' }}>
+                <span style={{ width: 20, height: 20, borderRadius: 6, background: '#1c1c1c', color: '#71717a', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "'DM Mono', monospace" }}>{item.quantity}</span>
+                <span style={{ color: '#a1a1aa', fontSize: 12, flex: 1, fontFamily: "'DM Sans', sans-serif" }}>{item.menu_item?.name}</span>
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>₹{Number(item.price) * item.quantity}</span>
               </div>
             ))}
           </div>
@@ -652,7 +630,7 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
   const allCats = Array.from(new Set(items.flatMap(i => i.categories ?? [])))
 
   return (
-    <div className="pb-24 md:pb-4 space-y-6">
+    <div style={{ paddingBottom: 96, display: 'flex', flexDirection: 'column', gap: 24 }}>
       {showForm && (
         <MenuItemForm token={token} editItem={editItem} existingCategories={allCats}
           onClose={() => { setShowForm(false); setEditItem(null) }}
@@ -660,24 +638,24 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
           toast={toast} />
       )}
       {loading ? (
-        <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{Array.from({ length: 4 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
       ) : items.length === 0 ? (
-        <div className="glass rounded-4xl p-12 text-center">
-          <p className="text-zinc-400 font-display font-bold text-lg tracking-tighter">No items yet</p>
-          <p className="text-zinc-600 text-sm mt-1">Tap + to add your first item</p>
+        <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: '48px 24px', textAlign: 'center' }}>
+          <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#52525b', margin: '0 0 4px' }}>No items yet</p>
+          <p style={{ color: '#3f3f46', fontSize: 13, fontFamily: "'DM Sans', sans-serif", margin: 0 }}>Tap + to add your first item</p>
         </div>
       ) : (
         allCats.map(cat => (
           <section key={cat}>
-            <div className="flex items-center gap-3 mb-3">
-              <span style={{ fontSize: '16px' }}>{CAT_ICON[cat] ?? '🍴'}</span>
-              <p className="text-xs font-bold text-zinc-400 uppercase tracking-widest">{cat}</p>
-              <div className="flex-1 h-px bg-zinc-800/80" />
-              <span className="text-[10px] text-zinc-700 font-mono bg-zinc-900 px-2 py-0.5 rounded-full border border-zinc-800">
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
+              <span style={{ fontSize: 16 }}>{CAT_ICON[cat] ?? '🍴'}</span>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#71717a', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>{cat}</p>
+              <div style={{ flex: 1, height: 1, background: '#1c1c1c' }} />
+              <span style={{ fontSize: 10, color: '#3f3f46', fontFamily: "'DM Mono', monospace", background: '#111', padding: '2px 8px', borderRadius: 20, border: '1px solid #1c1c1c' }}>
                 {items.filter(i => (i.categories ?? []).includes(cat)).length}
               </span>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 12 }}>
               {items.filter(i => (i.categories ?? []).includes(cat)).map(item => (
                 <MenuItemCard key={item.id} item={item} onToggle={handleToggle} onDelete={handleDelete}
                   onEdit={i => { setEditItem(i); setShowForm(true) }} onInlineEdit={handleInlineEdit} />
@@ -687,7 +665,7 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
         ))
       )}
       <button onClick={() => { setEditItem(null); setShowForm(!showForm) }}
-        className={`fixed bottom-24 md:bottom-8 right-5 w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg active:scale-90 transition-all duration-200 z-30 ${showForm ? 'bg-zinc-700 text-white rotate-45' : 'bg-lime-400 text-black glow-lime-sm'}`}>
+        style={{ position: 'fixed', bottom: 88, right: 20, width: 56, height: 56, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, fontWeight: 700, border: 'none', cursor: 'pointer', zIndex: 30, color: '#fff', background: showForm ? '#27272a' : '#ff6b00', transform: showForm ? 'rotate(45deg)' : 'none', transition: 'all 0.2s' }}>
         +
       </button>
     </div>
@@ -696,8 +674,9 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
 
 function Toggle({ checked, onChange }: { checked: boolean; onChange: () => void }) {
   return (
-    <button onClick={onChange} className={`relative w-9 h-5 rounded-full transition-all duration-300 shrink-0 ${checked ? 'bg-lime-400' : 'bg-zinc-700'}`}>
-      <span className={`absolute top-0.5 w-4 h-4 bg-white rounded-full transition-all duration-300 shadow-sm ${checked ? 'left-4' : 'left-0.5'}`} />
+    <button onClick={onChange}
+      style={{ position: 'relative', width: 36, height: 20, borderRadius: 10, border: 'none', cursor: 'pointer', flexShrink: 0, background: checked ? '#ff6b00' : '#3f3f46', transition: 'background 0.3s' }}>
+      <span style={{ position: 'absolute', top: 2, width: 16, height: 16, borderRadius: '50%', background: '#fff', transition: 'left 0.3s', left: checked ? 18 : 2, boxShadow: '0 1px 3px rgba(0,0,0,0.3)' }} />
     </button>
   )
 }
@@ -707,16 +686,18 @@ function InlineField({ value, type = 'text', prefix = '', onSave }: { value: str
   const [val, setVal] = useState(value)
   const commit = () => { setEditing(false); if (val !== value) onSave(val) }
   if (editing) return (
-    <div className="flex items-center gap-0.5">
-      {prefix && <span className="text-zinc-400 text-xs">{prefix}</span>}
+    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 2 }}>
+      {prefix && <span style={{ color: '#71717a', fontSize: 12 }}>{prefix}</span>}
       <input autoFocus type={type} value={val} onChange={e => setVal(e.target.value)} onBlur={commit}
         onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setVal(value); setEditing(false) } }}
-        className="bg-zinc-700 border border-lime-400/50 rounded px-1.5 py-0.5 text-xs text-white outline-none w-16 font-mono" />
-    </div>
+        style={{ background: '#27272a', border: '1px solid rgba(255,107,0,0.5)', borderRadius: 4, padding: '2px 6px', fontSize: 12, color: '#fff', outline: 'none', width: 64, fontFamily: "'DM Mono', monospace" }} />
+    </span>
   )
   return (
-    <span onClick={() => { setVal(value); setEditing(true) }} className="cursor-text hover:text-lime-400 transition-colors group" title="Click to edit">
-      {prefix}{value}<span className="opacity-0 group-hover:opacity-40 text-zinc-500 text-[10px] ml-0.5 transition-opacity">✎</span>
+    <span onClick={() => { setVal(value); setEditing(true) }} style={{ cursor: 'text', fontFamily: "'DM Sans', sans-serif" }}
+      onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#ff6b00'}
+      onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = ''}>
+      {prefix}{value}
     </span>
   )
 }
@@ -728,39 +709,35 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
   const isVeg    = (item.categories ?? []).includes('Veg')
   const isNonVeg = (item.categories ?? []).includes('Non-Veg')
   return (
-    <div className={`relative bg-zinc-900 border rounded-2xl overflow-hidden transition-all duration-200 ${!item.is_available ? 'opacity-50 border-zinc-800' : 'border-zinc-800 hover:border-zinc-600'}`}>
-      <div className="h-20 bg-zinc-800 flex items-center justify-center relative">
-        {item.is_available === false && (
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Unavailable</span>
+    <div style={{ background: '#111', border: '1px solid #1c1c1c', borderRadius: 16, overflow: 'hidden', opacity: item.is_available ? 1 : 0.5, transition: 'all 0.2s' }}>
+      <div style={{ height: 80, background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        {!item.is_available && (
+          <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ color: '#52525b', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace" }}>Unavailable</span>
           </div>
         )}
-        <div className="flex flex-col items-center gap-1 opacity-25">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
-            <rect x="3" y="3" width="18" height="18" rx="3" />
-            <circle cx="8.5" cy="8.5" r="1.5" />
-            <path d="M21 15l-5-5L5 21" />
-          </svg>
-        </div>
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" strokeWidth="1.5" style={{ opacity: 0.3 }}>
+          <rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
+        </svg>
         {(isVeg || isNonVeg) && (
-          <div className={`absolute top-2 left-2 w-4 h-4 rounded flex items-center justify-center border ${isVeg ? 'border-emerald-500 bg-zinc-900/80' : 'border-rose-500 bg-zinc-900/80'}`}>
-            <div className={`w-2 h-2 rounded-full ${isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+          <div style={{ position: 'absolute', top: 8, left: 8, width: 16, height: 16, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1px solid ${isVeg ? '#10b981' : '#f43f5e'}`, background: 'rgba(0,0,0,0.7)' }}>
+            <div style={{ width: 8, height: 8, borderRadius: '50%', background: isVeg ? '#10b981' : '#f43f5e' }} />
           </div>
         )}
-        <div className="absolute top-2 right-2">
+        <div style={{ position: 'absolute', top: 8, right: 8 }}>
           <Toggle checked={item.is_available} onChange={() => onToggle(item)} />
         </div>
       </div>
-      <div className="p-2.5">
-        <p className="font-semibold text-white text-xs leading-tight truncate">
+      <div style={{ padding: 10 }}>
+        <p style={{ fontWeight: 600, color: '#fff', fontSize: 12, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: '0 0 2px' }}>
           <InlineField value={item.name} onSave={v => onInlineEdit(item, 'name', v)} />
         </p>
-        <p className="text-lime-400 font-mono font-bold text-xs mt-0.5">
+        <p style={{ color: '#ff6b00', fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 12, margin: 0 }}>
           <InlineField value={item.price} type="number" prefix="₹" onSave={v => onInlineEdit(item, 'price', v)} />
         </p>
-        <div className="flex items-center justify-end gap-1 mt-2">
-          <button onClick={() => onEdit(item)} className="w-6 h-6 rounded-lg bg-zinc-800 text-zinc-500 flex items-center justify-center text-[10px] hover:bg-zinc-700 hover:text-white transition-all active:scale-90">✎</button>
-          <button onClick={() => onDelete(item.id)} className="w-6 h-6 rounded-lg bg-rose-500/10 text-rose-500 flex items-center justify-center text-[10px] hover:bg-rose-500/20 transition-all active:scale-90">✕</button>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4, marginTop: 8 }}>
+          <button onClick={() => onEdit(item)} style={{ width: 24, height: 24, borderRadius: 6, background: '#1c1c1c', border: 'none', color: '#71717a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, cursor: 'pointer' }}>✎</button>
+          <button onClick={() => onDelete(item.id)} style={{ width: 24, height: 24, borderRadius: 6, background: 'rgba(244,63,94,0.1)', border: 'none', color: '#f43f5e', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 11, cursor: 'pointer' }}>✕</button>
         </div>
       </div>
     </div>
@@ -780,8 +757,8 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
   const [loading, setLoading] = useState(false)
 
   const allOptions = Array.from(new Set([...SUGGESTED_CATEGORIES, ...existingCategories]))
-  const toggleCat  = (cat: string) => setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
-  const addCustom  = () => { const val = customInput.trim(); if (!val) return; if (!selectedCats.includes(val)) setSelectedCats(prev => [...prev, val]); setCustomInput('') }
+  const toggleCat = (cat: string) => setSelectedCats(prev => prev.includes(cat) ? prev.filter(c => c !== cat) : [...prev, cat])
+  const addCustom = () => { const val = customInput.trim(); if (!val) return; if (!selectedCats.includes(val)) setSelectedCats(prev => [...prev, val]); setCustomInput('') }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -797,47 +774,53 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
     } finally { setLoading(false) }
   }
 
+  const inputStyle = { width: '100%', background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' as const }
+
   return (
-    <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-5 animate-slide-up">
-      <div className="flex items-center justify-between mb-4">
-        <p className="font-display font-bold text-white tracking-tighter">{editItem ? 'Edit item' : 'New item'}</p>
-        <button onClick={onClose} className="w-7 h-7 rounded-xl bg-zinc-800 text-zinc-500 text-sm flex items-center justify-center hover:bg-zinc-700 transition-colors">✕</button>
+    <div style={{ background: '#111', border: '1px solid #27272a', borderRadius: 20, padding: 20 }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
+        <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 16, color: '#fff', margin: 0 }}>{editItem ? 'Edit item' : 'New item'}</p>
+        <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 8, background: '#1c1c1c', border: 'none', color: '#71717a', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
       </div>
-      <form onSubmit={handleSubmit} className="space-y-3">
-        <input value={name} onChange={e => setName(e.target.value)} placeholder="Item name"
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
-        <input type="number" min="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="Price ₹"
-          className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
+      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <input value={name} onChange={e => setName(e.target.value)} placeholder="Item name" style={inputStyle}
+          onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
+        <input type="number" min="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="Price ₹" style={{ ...inputStyle, fontFamily: "'DM Mono', monospace" }}
+          onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
         <div>
-          <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest mb-2">Categories <span className="text-zinc-700 normal-case font-normal">(select all that apply)</span></p>
-          <div className="flex flex-wrap gap-1.5 mb-2">
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", marginBottom: 8 }}>
+            Categories <span style={{ color: '#3f3f46', textTransform: 'none', fontWeight: 400, letterSpacing: 0, fontFamily: "'DM Sans', sans-serif" }}>(select all that apply)</span>
+          </p>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             {allOptions.map(c => (
               <button key={c} type="button" onClick={() => toggleCat(c)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold border transition-all duration-150 active:scale-95 ${selectedCats.includes(c) ? 'bg-lime-400 text-black border-transparent' : 'bg-zinc-800 text-zinc-400 border-zinc-700 hover:border-zinc-500'}`}>
+                style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', border: 'none', background: selectedCats.includes(c) ? '#ff6b00' : '#1c1c1c', color: selectedCats.includes(c) ? '#fff' : '#71717a', fontFamily: "'DM Sans', sans-serif" }}>
                 {selectedCats.includes(c) ? '✓ ' : ''}{c}
               </button>
             ))}
           </div>
           {selectedCats.length > 0 && (
-            <div className="flex flex-wrap gap-1.5 mb-2">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
               {selectedCats.map(c => (
-                <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold ${getCatStyle(c)}`}>
-                  {c}<button type="button" onClick={() => toggleCat(c)} className="hover:text-white transition-colors leading-none">×</button>
+                <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold ${getCatStyle(c)}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                  {c}<button type="button" onClick={() => toggleCat(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', lineHeight: 1 }}>×</button>
                 </span>
               ))}
             </div>
           )}
-          <div className="flex gap-2">
+          <div style={{ display: 'flex', gap: 8 }}>
             <input value={customInput} onChange={e => setCustomInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustom() } }}
-              placeholder="Type a custom category…"
-              className="flex-1 bg-zinc-800 border border-zinc-700 rounded-xl px-3 py-2 text-xs text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
-            <button type="button" onClick={addCustom} className="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-white text-xs font-bold rounded-xl transition-colors">+ Add</button>
+              placeholder="Custom category…"
+              style={{ flex: 1, background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 10, padding: '8px 12px', fontSize: 12, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+              onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
+            <button type="button" onClick={addCustom}
+              style={{ padding: '8px 12px', background: '#27272a', border: 'none', borderRadius: 10, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>+ Add</button>
           </div>
         </div>
         <button type="submit" disabled={loading}
-          className="w-full bg-lime-400 text-black py-3 rounded-xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-          {loading ? <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />Saving…</> : editItem ? 'Save Changes' : 'Add to Menu'}
+          style={{ width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#ff6b00', color: '#fff', fontFamily: "'DM Sans', sans-serif", opacity: loading ? 0.6 : 1 }}>
+          {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Saving…</> : editItem ? 'Save Changes' : 'Add to Menu'}
         </button>
       </form>
     </div>
@@ -861,36 +844,45 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
   }
   const copyLink = () => { navigator.clipboard.writeText(menuUrl); toast('Link copied!', 'success') }
 
-  if (!vendorId) return <div className="text-center py-20 text-zinc-600">Loading…</div>
+  if (!vendorId) return <div style={{ textAlign: 'center', padding: '80px 0', color: '#52525b' }}>Loading…</div>
 
   return (
-    <div className="max-w-sm mx-auto space-y-4">
-      <div className="glass rounded-4xl p-8 flex flex-col items-center gap-5">
-        <div className="text-center">
-          <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Scan to Order</p>
-          <p className="font-display font-bold text-white text-2xl tracking-tighter mt-1 lowercase">{vendorName ?? 'your menu'}</p>
+    <div style={{ maxWidth: 360, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: '0 0 4px' }}>Scan to Order</p>
+          <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, color: '#fff', fontSize: 22, letterSpacing: '-0.5px', margin: 0 }}>{vendorName ?? 'your menu'}</p>
         </div>
-        <div ref={qrRef} className="p-5 bg-white rounded-3xl shadow-[0_0_40px_rgba(163,230,53,0.15)]">
+        <div ref={qrRef} style={{ padding: 20, background: '#fff', borderRadius: 16, boxShadow: '0 0 40px rgba(255,107,0,0.12)' }}>
           <QRCodeSVG value={menuUrl} size={200} bgColor="#ffffff" fgColor="#09090b" level="H" includeMargin={false} />
         </div>
-        <p className="text-xs text-zinc-600 font-mono break-all text-center px-2">{menuUrl}</p>
+        <p style={{ fontSize: 11, color: '#3f3f46', fontFamily: "'DM Mono', monospace", wordBreak: 'break-all', textAlign: 'center', padding: '0 8px' }}>{menuUrl}</p>
       </div>
-      <div className="grid grid-cols-2 gap-3">
-        <button onClick={downloadSVG} className="glass rounded-3xl py-4 font-bold text-sm flex items-center justify-center gap-2 text-white active:scale-95 transition-all duration-200 hover:bg-zinc-800">⬇ Download</button>
-        <button onClick={copyLink}    className="bg-lime-400 text-black rounded-3xl py-4 font-bold text-sm flex items-center justify-center gap-2 glow-lime-sm active:scale-95 transition-all duration-200">🔗 Copy Link</button>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+        <button onClick={downloadSVG}
+          style={{ background: '#111', border: '1px solid #27272a', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+          ⬇ Download
+        </button>
+        <button onClick={copyLink}
+          style={{ background: '#ff6b00', border: 'none', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+          🔗 Copy Link
+        </button>
       </div>
-      <div className="glass rounded-3xl p-5 space-y-3">
-        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">How it works</p>
-        <div className="space-y-2.5">
+      <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 16, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>How it works</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[
             ['Print & place', 'on each table or the counter'],
-            ['Student scans', 'with their phone camera — no app needed'],
+            ['Customer scans', 'with their phone camera — no app needed'],
             ['They order & pay', 'instantly via UPI / card'],
             ['You get notified', 'in real time on this dashboard'],
           ].map(([title, desc], i) => (
-            <div key={i} className="flex items-start gap-3">
-              <span className="w-5 h-5 rounded-full bg-zinc-800 border border-zinc-700 flex items-center justify-center text-[10px] font-bold text-zinc-500 shrink-0 mt-0.5">{i + 1}</span>
-              <div><span className="text-white text-xs font-semibold">{title} </span><span className="text-zinc-500 text-xs">{desc}</span></div>
+            <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
+              <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#111', border: '1px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#ff6b00', flexShrink: 0, marginTop: 1, fontFamily: "'DM Mono', monospace" }}>{i + 1}</span>
+              <div>
+                <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>{title} </span>
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>{desc}</span>
+              </div>
             </div>
           ))}
         </div>
@@ -917,41 +909,39 @@ function SettingsTab({ vendor, token, toast, onLogout }: {
         const updated = { ...vendor, name: name.trim() }
         localStorage.setItem('vendor_info', JSON.stringify(updated))
         toast('Canteen name updated!', 'success')
-      } else {
-        toast(res.message || 'Update failed', 'error')
-      }
-    } catch {
-      toast('Could not reach server', 'error')
-    } finally {
-      setSaving(false)
-    }
+      } else { toast(res.message || 'Update failed', 'error') }
+    } catch { toast('Could not reach server', 'error') }
+    finally { setSaving(false) }
   }
 
+  const inputStyle = { width: '100%', background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' as const }
+  const labelStyle = { display: 'block', fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 8, fontFamily: "'DM Mono', monospace" }
+
   return (
-    <div className="max-w-sm space-y-4">
-      <div className="glass rounded-3xl p-6 space-y-4">
-        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Canteen Profile</p>
-        <form onSubmit={handleSave} className="space-y-3">
+    <div style={{ maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
+      <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>Canteen Profile</p>
+        <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
-            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Canteen Name</label>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="Your canteen name"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
-            <p className="text-xs text-zinc-600 mt-1.5">This name is shown to students on the menu page.</p>
+            <label style={labelStyle}>Canteen Name</label>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Your canteen name" style={inputStyle}
+              onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
+            <p style={{ fontSize: 12, color: '#3f3f46', marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>This name is shown to customers on the menu page.</p>
           </div>
           <div>
-            <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Email</label>
-            <p className="text-sm text-zinc-400 px-1">{vendor?.email ?? '—'}</p>
+            <label style={labelStyle}>Email</label>
+            <p style={{ fontSize: 14, color: '#71717a', fontFamily: "'DM Sans', sans-serif", margin: 0 }}>{vendor?.email ?? '—'}</p>
           </div>
           <button type="submit" disabled={saving}
-            className="w-full bg-lime-400 text-black py-3 rounded-2xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
-            {saving ? <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />Saving…</> : 'Save Changes'}
+            style={{ width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#ff6b00', color: '#fff', fontFamily: "'DM Sans', sans-serif", opacity: saving ? 0.6 : 1 }}>
+            {saving ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Saving…</> : 'Save Changes'}
           </button>
         </form>
       </div>
-      <div className="glass rounded-3xl p-6 space-y-3 border border-rose-500/10">
-        <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Account</p>
+      <div style={{ background: '#0d0d0d', border: '1px solid rgba(244,63,94,0.12)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>Account</p>
         <button onClick={onLogout}
-          className="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 py-3 rounded-2xl font-bold text-sm hover:bg-rose-500/20 active:scale-[0.98] transition-all">
+          style={{ width: '100%', background: 'rgba(244,63,94,0.08)', color: '#f87171', border: '1px solid rgba(244,63,94,0.2)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
           Sign out
         </button>
       </div>
