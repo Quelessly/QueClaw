@@ -195,9 +195,7 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
 
   const activeOrders = orders.filter(o => !['completed', 'cancelled'].includes(o.status))
   const pastOrders   = orders.filter(o => ['completed', 'cancelled'].includes(o.status))
-
-  // Today's stats computed from orders
-  const todayOrders = pastOrders.filter(o => formatDateLabel(o.created_at) === 'Today')
+  const todayOrders  = pastOrders.filter(o => formatDateLabel(o.created_at) === 'Today')
   const todayRevenue = todayOrders.reduce((s, o) => s + Number(o.total_amount), 0)
 
   const TABS: { key: Tab; icon: React.ReactNode; label: string; badge?: number }[] = [
@@ -244,7 +242,6 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
 
   return (
     <div className="min-h-screen bg-black flex">
-      {/* Desktop sidebar */}
       <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-20 bg-zinc-950 border-r border-zinc-900 flex-col items-center py-8 gap-2 z-40">
         <div className="w-10 h-10 bg-lime-400 rounded-2xl flex items-center justify-center mb-6 glow-lime-sm">
           <span className="text-black font-black text-lg font-display">Q</span>
@@ -265,7 +262,6 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
       </aside>
 
       <main className="flex-1 md:ml-20 pb-24 md:pb-0 min-h-screen bg-black">
-        {/* Top bar */}
         <div className="sticky top-0 z-30 bg-black/90 backdrop-blur-lg border-b border-zinc-900 px-5 py-4 flex items-center justify-between">
           <div>
             <h2 className="font-display font-bold text-white tracking-tighter">
@@ -293,12 +289,9 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
         <div className="px-4 py-4">
           {tab === 'orders' && (
             <OrdersTab
-              activeOrders={activeOrders}
-              pastOrders={pastOrders}
-              todayOrders={todayOrders}
-              todayRevenue={todayRevenue}
-              loading={ordersLoading}
-              newOrderIds={newOrderIds}
+              activeOrders={activeOrders} pastOrders={pastOrders}
+              todayOrders={todayOrders} todayRevenue={todayRevenue}
+              loading={ordersLoading} newOrderIds={newOrderIds}
               onUpdateStatus={updateStatus}
             />
           )}
@@ -308,7 +301,6 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
         </div>
       </main>
 
-      {/* Mobile bottom nav — now 4 tabs */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-zinc-950/95 backdrop-blur-xl border-t border-zinc-900 flex">
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
@@ -327,13 +319,24 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
 // ─── Orders Tab ────────────────────────────────────────────────────────────────
 
 function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loading, newOrderIds, onUpdateStatus }: {
-  activeOrders: Order[]; pastOrders: Order[]; todayOrders: Order[]; todayRevenue: number;
+  activeOrders: Order[]; pastOrders: Order[]; todayOrders: Order[]; todayRevenue: number
   loading: boolean; newOrderIds: Set<string>; onUpdateStatus: (id: string, status: string) => void
 }) {
   const [updatingId, setUpdatingId] = useState<string | null>(null)
   const [collapsedGroups, setCollapsedGroups] = useState<Set<string>>(new Set())
+  const [dismissingId, setDismissingId] = useState<string | null>(null)
 
-  const handleUpdate = async (id: string, status: string) => { setUpdatingId(id); await onUpdateStatus(id, status); setUpdatingId(null) }
+  const handleUpdate = async (id: string, status: string) => {
+    setUpdatingId(id); await onUpdateStatus(id, status); setUpdatingId(null)
+  }
+
+  const handleDismiss = async (id: string) => {
+    setDismissingId(id)
+    // Small delay so the swipe-out animation plays before the item disappears
+    await new Promise(r => setTimeout(r, 320))
+    await onUpdateStatus(id, 'cancelled')
+    setDismissingId(null)
+  }
 
   const toggleGroup = (label: string) => {
     setCollapsedGroups(prev => { const next = new Set(prev); next.has(label) ? next.delete(label) : next.add(label); return next })
@@ -345,8 +348,6 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
 
   return (
     <div className="space-y-8">
-
-      {/* Today's stats chips */}
       {todayOrders.length > 0 && (
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-zinc-900 border border-zinc-800 rounded-2xl p-4">
@@ -360,7 +361,6 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
         </div>
       )}
 
-      {/* Active orders */}
       <section>
         {activeOrders.length === 0 ? (
           <div className="glass rounded-4xl p-12 text-center">
@@ -370,13 +370,19 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
         ) : (
           <div className="space-y-3">
             {activeOrders.map(order => (
-              <OrderCard key={order.id} order={order} isNew={newOrderIds.has(order.id)} updating={updatingId === order.id} onUpdate={handleUpdate} />
+              <OrderCard
+                key={order.id} order={order}
+                isNew={newOrderIds.has(order.id)}
+                updating={updatingId === order.id}
+                dismissing={dismissingId === order.id}
+                onUpdate={handleUpdate}
+                onDismiss={handleDismiss}
+              />
             ))}
           </div>
         )}
       </section>
 
-      {/* Past orders grouped by date */}
       {pastGroups.length > 0 && (
         <section className="space-y-3">
           <p className="text-xs font-bold text-zinc-600 uppercase tracking-widest">Past Orders</p>
@@ -405,7 +411,7 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
   )
 }
 
-// ─── Active Order Card ─────────────────────────────────────────────────────────
+// ─── Active Order Card with swipe-to-dismiss ───────────────────────────────────
 
 function useSLA(createdAt: string, status: string): boolean {
   const [elapsed, setElapsed] = useState(Date.now() - new Date(createdAt).getTime())
@@ -417,66 +423,145 @@ function useSLA(createdAt: string, status: string): boolean {
   return ['paid', 'preparing'].includes(status) && elapsed > 5 * 60 * 1000
 }
 
-function OrderCard({ order, isNew, updating, onUpdate }: {
-  order: Order; isNew: boolean; updating: boolean; onUpdate: (id: string, status: string) => void
+function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: {
+  order: Order; isNew: boolean; updating: boolean; dismissing: boolean
+  onUpdate: (id: string, status: string) => void
+  onDismiss: (id: string) => void
 }) {
-  const sla    = useSLA(order.created_at, order.status)
-  const next   = STATUS_FLOW[order.status]
-  const action = next ? ACTION_LABEL[order.status] : null
-  const cfg    = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending
-  const time   = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+  const sla       = useSLA(order.created_at, order.status)
+  const next      = STATUS_FLOW[order.status]
+  const action    = next ? ACTION_LABEL[order.status] : null
+  const cfg       = STATUS_CONFIG[order.status] ?? STATUS_CONFIG.pending
+  const time      = new Date(order.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
   const itemCount = order.order_items?.reduce((s, i) => s + i.quantity, 0) ?? 0
+  const isPending = order.status === 'pending'
+
+  // Swipe state
+  const touchStartX = useRef<number | null>(null)
+  const [swipeX, setSwipeX] = useState(0)
+  const [swiping, setSwiping] = useState(false)
+  const DISMISS_THRESHOLD = 80
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+    setSwiping(true)
+  }
+  const onTouchMove = (e: React.TouchEvent) => {
+    if (touchStartX.current === null) return
+    const delta = e.touches[0].clientX - touchStartX.current
+    // Only allow left swipe on pending orders
+    if (isPending && delta < 0) setSwipeX(Math.max(delta, -DISMISS_THRESHOLD - 20))
+  }
+  const onTouchEnd = () => {
+    setSwiping(false)
+    if (swipeX < -DISMISS_THRESHOLD) {
+      onDismiss(order.id)
+    } else {
+      setSwipeX(0)
+    }
+    touchStartX.current = null
+  }
+
+  const revealed = swipeX < -DISMISS_THRESHOLD / 2
 
   return (
-    <div className={`bg-zinc-900 rounded-3xl overflow-hidden border transition-all duration-300 ${
-      isNew ? 'border-lime-400/50 shadow-[0_0_24px_rgba(163,230,53,0.12)]' : sla ? 'border-rose-500/60' : 'border-zinc-800'
-    }`}>
-      <div className={`h-1 w-full ${cfg.bar}`} />
-      {isNew && <div className="bg-lime-400 text-black text-xs font-black text-center py-1.5 tracking-widest uppercase">✦ New Order</div>}
-      {sla && !isNew && (
-        <div className="bg-rose-500/10 text-rose-400 text-xs font-bold text-center py-1.5 tracking-widest uppercase border-b border-rose-500/20">
-          ⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m
+    <div className="relative overflow-hidden rounded-3xl">
+      {/* Dismiss background — only for pending */}
+      {isPending && (
+        <div className={`absolute inset-y-0 right-0 w-24 flex items-center justify-center rounded-r-3xl transition-all duration-200 ${revealed ? 'bg-rose-500' : 'bg-rose-500/60'}`}>
+          <div className="flex flex-col items-center gap-1">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="3 6 5 6 21 6"/>
+              <path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/>
+              <path d="M10 11v6M14 11v6"/>
+              <path d="M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
+            </svg>
+            <span className="text-white text-[10px] font-bold">Dismiss</span>
+          </div>
         </div>
       )}
 
-      <div className="p-5">
-        <div className="flex items-start justify-between mb-4">
-          <div>
-            <div className="flex items-baseline gap-2">
-              <span className="text-zinc-600 font-mono text-sm">#</span>
-              <p className="font-display font-black text-white text-2xl tracking-tighter leading-none">
-                {order.id.slice(0, 8).toUpperCase()}
-              </p>
-            </div>
-            <div className="flex items-center gap-2 mt-1.5">
-              <span className="text-zinc-500 text-xs font-mono">{time}</span>
-              <span className="w-1 h-1 rounded-full bg-zinc-700" />
-              <span className="text-zinc-500 text-xs">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
-            </div>
+      {/* Card — slides left on swipe */}
+      <div
+        className={`bg-zinc-900 rounded-3xl overflow-hidden border transition-all duration-300 ${
+          isNew ? 'border-lime-400/50 shadow-[0_0_24px_rgba(163,230,53,0.12)]' : sla ? 'border-rose-500/60' : 'border-zinc-800'
+        } ${dismissing ? 'opacity-0 -translate-x-full' : ''}`}
+        style={{
+          transform: dismissing ? 'translateX(-100%)' : `translateX(${swipeX}px)`,
+          transition: swiping ? 'none' : 'transform 0.3s ease, opacity 0.3s ease',
+        }}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
+      >
+        <div className={`h-1 w-full ${cfg.bar}`} />
+        {isNew && <div className="bg-lime-400 text-black text-xs font-black text-center py-1.5 tracking-widest uppercase">✦ New Order</div>}
+        {sla && !isNew && (
+          <div className="bg-rose-500/10 text-rose-400 text-xs font-bold text-center py-1.5 tracking-widest uppercase border-b border-rose-500/20">
+            ⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m
           </div>
-          <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
-        </div>
-
-        <div className="bg-zinc-800/40 rounded-2xl overflow-hidden mb-4">
-          {order.order_items?.map((item, idx) => (
-            <div key={item.id} className={`flex items-center gap-3 px-4 py-2.5 ${idx !== 0 ? 'border-t border-zinc-800/60' : ''}`}>
-              <span className="w-6 h-6 rounded-lg bg-zinc-700 text-white text-xs font-black flex items-center justify-center shrink-0">{item.quantity}</span>
-              <span className="text-white text-sm font-medium flex-1">{item.menu_item?.name}</span>
-              <span className="text-zinc-400 text-sm font-mono">₹{Number(item.price) * item.quantity}</span>
-            </div>
-          ))}
-          <div className="flex items-center justify-between px-4 py-2.5 border-t border-zinc-700/60 bg-zinc-800/40">
-            <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Total</span>
-            <span className="text-lime-400 font-black text-lg font-mono">₹{Number(order.total_amount)}</span>
-          </div>
-        </div>
-
-        {action && (
-          <button onClick={() => onUpdate(order.id, next!)} disabled={updating}
-            className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 disabled:opacity-50 active:scale-[0.98] flex items-center justify-center gap-2 ${action.style}`}>
-            {updating ? <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />Updating…</> : action.label}
-          </button>
         )}
+
+        <div className="p-5">
+          <div className="flex items-start justify-between mb-4">
+            <div>
+              <div className="flex items-baseline gap-2">
+                <span className="text-zinc-600 font-mono text-sm">#</span>
+                <p className="font-display font-black text-white text-2xl tracking-tighter leading-none">
+                  {order.id.slice(0, 8).toUpperCase()}
+                </p>
+              </div>
+              <div className="flex items-center gap-2 mt-1.5">
+                <span className="text-zinc-500 text-xs font-mono">{time}</span>
+                <span className="w-1 h-1 rounded-full bg-zinc-700" />
+                <span className="text-zinc-500 text-xs">{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
+              {/* Desktop dismiss button — only for pending */}
+              {isPending && (
+                <button
+                  onClick={() => onDismiss(order.id)}
+                  title="Dismiss order"
+                  className="w-7 h-7 rounded-xl bg-zinc-800 hover:bg-rose-500/20 text-zinc-600 hover:text-rose-400 flex items-center justify-center transition-all active:scale-90"
+                >
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-zinc-800/40 rounded-2xl overflow-hidden mb-4">
+            {order.order_items?.map((item, idx) => (
+              <div key={item.id} className={`flex items-center gap-3 px-4 py-2.5 ${idx !== 0 ? 'border-t border-zinc-800/60' : ''}`}>
+                <span className="w-6 h-6 rounded-lg bg-zinc-700 text-white text-xs font-black flex items-center justify-center shrink-0">{item.quantity}</span>
+                <span className="text-white text-sm font-medium flex-1">{item.menu_item?.name}</span>
+                <span className="text-zinc-400 text-sm font-mono">₹{Number(item.price) * item.quantity}</span>
+              </div>
+            ))}
+            <div className="flex items-center justify-between px-4 py-2.5 border-t border-zinc-700/60 bg-zinc-800/40">
+              <span className="text-zinc-500 text-xs font-semibold uppercase tracking-wider">Total</span>
+              <span className="text-lime-400 font-black text-lg font-mono">₹{Number(order.total_amount)}</span>
+            </div>
+          </div>
+
+          {isPending && (
+            <p className="text-zinc-600 text-xs text-center mb-3">
+              Waiting for payment · swipe left to dismiss
+            </p>
+          )}
+
+          {action && (
+            <button onClick={() => onUpdate(order.id, next!)} disabled={updating}
+              className={`w-full py-3.5 rounded-2xl font-bold text-sm transition-all duration-200 disabled:opacity-50 active:scale-[0.98] flex items-center justify-center gap-2 ${action.style}`}>
+              {updating ? <><span className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />Updating…</> : action.label}
+            </button>
+          )}
+        </div>
       </div>
     </div>
   )
@@ -574,7 +659,6 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
           onSave={() => { setShowForm(false); setEditItem(null); load(); toast(editItem ? 'Updated' : 'Item added', 'success') }}
           toast={toast} />
       )}
-
       {loading ? (
         <div className="space-y-3">{Array.from({ length: 4 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
       ) : items.length === 0 ? (
@@ -602,7 +686,6 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
           </section>
         ))
       )}
-
       <button onClick={() => { setEditItem(null); setShowForm(!showForm) }}
         className={`fixed bottom-24 md:bottom-8 right-5 w-14 h-14 rounded-full flex items-center justify-center text-2xl font-bold shadow-lg active:scale-90 transition-all duration-200 z-30 ${showForm ? 'bg-zinc-700 text-white rotate-45' : 'bg-lime-400 text-black glow-lime-sm'}`}>
         +
@@ -623,7 +706,6 @@ function InlineField({ value, type = 'text', prefix = '', onSave }: { value: str
   const [editing, setEditing] = useState(false)
   const [val, setVal] = useState(value)
   const commit = () => { setEditing(false); if (val !== value) onSave(val) }
-
   if (editing) return (
     <div className="flex items-center gap-0.5">
       {prefix && <span className="text-zinc-400 text-xs">{prefix}</span>}
@@ -645,17 +727,14 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
 }) {
   const isVeg    = (item.categories ?? []).includes('Veg')
   const isNonVeg = (item.categories ?? []).includes('Non-Veg')
-
   return (
     <div className={`relative bg-zinc-900 border rounded-2xl overflow-hidden transition-all duration-200 ${!item.is_available ? 'opacity-50 border-zinc-800' : 'border-zinc-800 hover:border-zinc-600'}`}>
-      {/* Clean image area — no emoji, no colored backgrounds */}
       <div className="h-20 bg-zinc-800 flex items-center justify-center relative">
         {item.is_available === false && (
           <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
             <span className="text-zinc-500 text-[10px] font-bold uppercase tracking-widest">Unavailable</span>
           </div>
         )}
-        {/* Neutral placeholder */}
         <div className="flex flex-col items-center gap-1 opacity-25">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
             <rect x="3" y="3" width="18" height="18" rx="3" />
@@ -850,41 +929,29 @@ function SettingsTab({ vendor, token, toast, onLogout }: {
 
   return (
     <div className="max-w-sm space-y-4">
-      {/* Profile card */}
       <div className="glass rounded-3xl p-6 space-y-4">
         <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Canteen Profile</p>
         <form onSubmit={handleSave} className="space-y-3">
           <div>
             <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Canteen Name</label>
-            <input
-              value={name}
-              onChange={e => setName(e.target.value)}
-              placeholder="Your canteen name"
-              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
-            />
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="Your canteen name"
+              className="w-full bg-zinc-900 border border-zinc-800 rounded-2xl px-4 py-3 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors" />
             <p className="text-xs text-zinc-600 mt-1.5">This name is shown to students on the menu page.</p>
           </div>
           <div>
             <label className="block text-xs font-bold text-zinc-500 uppercase tracking-widest mb-2">Email</label>
             <p className="text-sm text-zinc-400 px-1">{vendor?.email ?? '—'}</p>
           </div>
-          <button
-            type="submit"
-            disabled={saving}
-            className="w-full bg-lime-400 text-black py-3 rounded-2xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
-          >
+          <button type="submit" disabled={saving}
+            className="w-full bg-lime-400 text-black py-3 rounded-2xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-all">
             {saving ? <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" />Saving…</> : 'Save Changes'}
           </button>
         </form>
       </div>
-
-      {/* Danger zone */}
       <div className="glass rounded-3xl p-6 space-y-3 border border-rose-500/10">
         <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Account</p>
-        <button
-          onClick={onLogout}
-          className="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 py-3 rounded-2xl font-bold text-sm hover:bg-rose-500/20 active:scale-[0.98] transition-all"
-        >
+        <button onClick={onLogout}
+          className="w-full bg-rose-500/10 text-rose-400 border border-rose-500/20 py-3 rounded-2xl font-bold text-sm hover:bg-rose-500/20 active:scale-[0.98] transition-all">
           Sign out
         </button>
       </div>
