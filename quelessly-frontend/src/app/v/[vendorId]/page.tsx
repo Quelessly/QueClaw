@@ -21,17 +21,19 @@ const CAT_ICON: Record<string, string> = {
 }
 
 const CAT_PILL: Record<string, string> = {
-  'Veg':       'bg-emerald-500/10 text-emerald-400 border-emerald-500/20',
-  'Non-Veg':   'bg-rose-500/10 text-rose-400 border-rose-500/20',
-  'Breakfast': 'bg-amber-500/10 text-amber-400 border-amber-500/20',
-  'Lunch':     'bg-orange-500/10 text-orange-400 border-orange-500/20',
-  'Dinner':    'bg-violet-500/10 text-violet-400 border-violet-500/20',
-  'Snacks':    'bg-lime-500/10 text-lime-400 border-lime-500/20',
-  'Drinks':    'bg-cyan-500/10 text-cyan-400 border-cyan-500/20',
-  'Desserts':  'bg-pink-500/10 text-pink-400 border-pink-500/20',
+  'Veg':       'bg-emerald-500/10 text-emerald-600 border-emerald-500/20',
+  'Non-Veg':   'bg-rose-500/10 text-rose-500 border-rose-500/20',
+  'Breakfast': 'bg-amber-500/10 text-amber-600 border-amber-500/20',
+  'Lunch':     'bg-orange-500/10 text-orange-500 border-orange-500/20',
+  'Dinner':    'bg-violet-500/10 text-violet-500 border-violet-500/20',
+  'Snacks':    'bg-orange-400/10 text-orange-400 border-orange-400/20',
+  'Drinks':    'bg-cyan-500/10 text-cyan-600 border-cyan-500/20',
+  'Desserts':  'bg-pink-500/10 text-pink-500 border-pink-500/20',
 }
 
-const getPillStyle = (cat: string) => CAT_PILL[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
+const getPillStyle = (cat: string) => CAT_PILL[cat] ?? 'bg-stone-100 text-stone-500 border-stone-200'
+
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
 
 export default function MenuPage() {
   const { vendorId } = useParams()
@@ -62,31 +64,19 @@ export default function MenuPage() {
     api.get(`/auth/vendor/${vendorId}`).then(res => { if (res.success && res.data?.name) setVendorName(res.data.name.toLowerCase()) })
   }, [vendorId])
 
-  // Check active order — verify status from API and auto-clear if done
   useEffect(() => {
     const stored = localStorage.getItem('active_order')
     if (!stored) return
     const order = JSON.parse(stored)
     if (order.vendorId !== vendorId) return
-    if (Date.now() - order.timestamp >= 2 * 60 * 60 * 1000) {
-      localStorage.removeItem('active_order')
-      return
-    }
-    // Fetch real status — clear banner if order is completed/cancelled
+    if (Date.now() - order.timestamp >= 2 * 60 * 60 * 1000) { localStorage.removeItem('active_order'); return }
     api.get(`/orders/${order.orderId}`).then(res => {
       if (res.success) {
         const status = res.data?.status
-        if (status === 'completed' || status === 'cancelled') {
-          localStorage.removeItem('active_order')
-          setActiveOrder(null)
-        } else {
-          setActiveOrder({ orderId: order.orderId, total: order.total })
-        }
+        if (status === 'completed' || status === 'cancelled') { localStorage.removeItem('active_order'); setActiveOrder(null) }
+        else setActiveOrder({ orderId: order.orderId, total: order.total })
       }
-    }).catch(() => {
-      // If fetch fails just show the banner anyway
-      setActiveOrder({ orderId: order.orderId, total: order.total })
-    })
+    }).catch(() => setActiveOrder({ orderId: order.orderId, total: order.total }))
   }, [vendorId])
 
   const categories = useMemo(() => ['All', ...Array.from(new Set(items.flatMap(i => i.categories ?? [])))], [items])
@@ -110,65 +100,89 @@ export default function MenuPage() {
   const goToCart = () => { localStorage.setItem('cart', JSON.stringify(cart)); localStorage.setItem('vendorId', vendorId as string); router.push('/cart') }
 
   return (
-    <div className="min-h-screen bg-zinc-950 pb-36">
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', paddingBottom: 144, fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`
+        ${FONTS}
+        * { box-sizing: border-box; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
+        @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
+        .menu-card { background:#fff; border:1px solid rgba(26,23,20,0.07); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:all 0.2s; }
+        .menu-card:hover { border-color:rgba(255,107,0,0.2); box-shadow:0 4px 16px rgba(26,23,20,0.08); }
+        .menu-card:active { transform:scale(0.98); }
+        .cat-pill { padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; border:1.5px solid; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; fontFamily:"'DM Sans',sans-serif"; }
+        .cat-pill:active { transform:scale(0.95); }
+        .qty-btn { width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; line-height:1; cursor:pointer; background:none; border:none; color:#ff6b00; transition:transform 0.15s; }
+        .qty-btn:active { transform:scale(0.85); }
+      `}</style>
 
       {/* Fixed header */}
-      <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${headerHidden ? '-translate-y-full' : 'translate-y-0'}`}>
-        <div className="mx-4 mt-4 glass rounded-full px-5 py-3 flex items-center justify-between">
-          <a href="https://quelessly.com" className="font-display font-bold text-white tracking-tighter text-base lowercase hover:text-lime-400 transition-colors">
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, transition: 'transform 0.3s', transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)' }}>
+        <div style={{ margin: '12px 16px 0', background: 'rgba(250,247,242,0.95)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 40, padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(26,23,20,0.08)', boxShadow: '0 4px 20px rgba(26,23,20,0.06)' }}>
+          <a href="https://quelessly.com" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, color: '#023341', fontSize: 16, textDecoration: 'none', letterSpacing: '-0.3px' }}>
             {vendorName}
           </a>
-          <div className="flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
-            <span className="text-xs text-zinc-400 tabular-nums">
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
+            <span style={{ fontSize: 12, color: '#8a7f72', fontFamily: "'DM Mono', monospace" }}>
               {loading ? '…' : `${items.filter(i => i.is_available).length} items`}
             </span>
           </div>
         </div>
       </div>
 
-      <div className="h-20" />
+      <div style={{ height: 80 }} />
 
       {/* Search */}
-      <div className="px-4 pb-3">
-        <div className="relative">
-          <span className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-500 text-sm pointer-events-none">⌕</span>
+      <div style={{ padding: '0 16px 12px' }}>
+        <div style={{ position: 'relative' }}>
+          <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8a7f72', fontSize: 16, pointerEvents: 'none' }}>⌕</span>
           <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search menu…"
-            className="w-full bg-zinc-900 border border-zinc-800 rounded-full pl-10 pr-5 py-3 text-sm text-white placeholder-zinc-500 outline-none focus:border-lime-400/50 transition-colors" />
+            style={{ width: '100%', background: '#fff', border: '1.5px solid rgba(26,23,20,0.1)', borderRadius: 40, padding: '12px 20px 12px 42px', fontSize: 14, color: '#1a1714', outline: 'none', fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
+            onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.4)'}
+            onBlur={e => e.target.style.borderColor = 'rgba(26,23,20,0.1)'} />
         </div>
       </div>
 
       {/* Category pills */}
-      <div className="flex gap-2 px-4 py-2 overflow-x-auto no-scrollbar">
+      <div className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 16px 12px', overflowX: 'auto' }}>
         {categories.map(cat => (
-          <button key={cat} onClick={() => setActiveCategory(cat)}
-            className={`flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold whitespace-nowrap border transition-all duration-200 active:scale-95 ${activeCategory === cat ? 'bg-lime-400 text-black border-transparent' : 'bg-transparent text-zinc-400 border-zinc-800 hover:border-zinc-600'}`}>
-            {cat !== 'All' && <span style={{ fontSize: '14px' }}>{CAT_ICON[cat] ?? '🍴'}</span>}
+          <button key={cat} onClick={() => setActiveCategory(cat)} className="cat-pill"
+            style={{
+              background: activeCategory === cat ? '#ff6b00' : 'transparent',
+              color: activeCategory === cat ? '#fff' : '#8a7f72',
+              borderColor: activeCategory === cat ? 'transparent' : 'rgba(26,23,20,0.12)',
+              fontFamily: "'DM Sans', sans-serif",
+            }}>
+            {cat !== 'All' && <span style={{ fontSize: 14 }}>{CAT_ICON[cat] ?? '🍴'}</span>}
             {cat}
           </button>
         ))}
       </div>
 
-      {/* Active order banner — only shows for non-completed orders */}
+      {/* Active order banner — dashed receipt style */}
       {activeOrder && (
-        <div className="px-4 pb-2">
+        <div style={{ padding: '0 16px 12px' }}>
           <button onClick={() => router.push(`/order/${activeOrder.orderId}`)}
-            className="w-full bg-lime-400/10 border border-lime-400/30 rounded-2xl px-4 py-3 flex items-center justify-between active:scale-[0.98] transition-all">
-            <div className="flex items-center gap-2">
-              <span className="w-1.5 h-1.5 rounded-full bg-lime-400 animate-pulse" />
-              <p className="text-lime-400 font-bold text-sm">Active order · ₹{activeOrder.total}</p>
+            style={{ width: '100%', background: 'rgba(255,107,0,0.05)', border: '2px dashed rgba(255,107,0,0.3)', borderRadius: 14, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.15s' }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,107,0,0.08)'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,107,0,0.05)'}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
+              <p style={{ color: '#ff6b00', fontWeight: 700, fontSize: 14, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Active order · ₹{activeOrder.total}</p>
             </div>
-            <span className="text-lime-400 text-xs font-bold">Track →</span>
+            <span style={{ color: '#ff6b00', fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Track →</span>
           </button>
         </div>
       )}
 
       {/* Menu grid */}
-      <div className="px-4 pt-3 grid grid-cols-2 gap-3">
+      <div style={{ padding: '4px 16px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
         {loading
           ? Array.from({ length: 6 }).map((_, i) => <SkeletonMenuCard key={i} />)
           : filtered.length === 0
-          ? <div className="col-span-2 text-center py-20"><p className="text-zinc-400 font-medium">Nothing found</p></div>
+          ? <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '80px 0' }}><p style={{ color: '#8a7f72', fontFamily: "'DM Sans', sans-serif" }}>Nothing found</p></div>
           : filtered.map(item => (
             <MenuCard key={item.id} item={item} qty={getQty(item.id)}
               onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item.id)}
@@ -180,16 +194,16 @@ export default function MenuPage() {
       {/* Cart pill */}
       {totalItems > 0 && (
         <button onClick={goToCart}
-          className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-lime-400 text-black px-6 py-4 rounded-full glow-lime font-bold text-sm whitespace-nowrap flex items-center gap-4 active:scale-95 transition-all duration-300">
-          <span className="bg-black/15 text-black font-black text-xs px-2.5 py-0.5 rounded-full">{totalItems}</span>
+          style={{ position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 50, background: '#ff6b00', color: '#fff', padding: '16px 28px', borderRadius: 40, fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16, whiteSpace: 'nowrap', boxShadow: '0 8px 28px rgba(255,107,0,0.35)', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.2s' }}>
+          <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 800, fontSize: 12, padding: '2px 10px', borderRadius: 20 }}>{totalItems}</span>
           View Cart
-          <span className="font-black">₹{totalAmount}</span>
+          <span style={{ fontWeight: 800, fontFamily: "'DM Mono', monospace" }}>₹{totalAmount}</span>
         </button>
       )}
 
-      {/* Powered by footer */}
-      <div className="text-center py-8 px-4">
-        <a href="https://quelessly.com" className="text-xs text-zinc-700 hover:text-zinc-500 transition-colors">
+      {/* Powered by */}
+      <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+        <a href="https://quelessly.com" style={{ fontSize: 12, color: '#c9c2b8', textDecoration: 'none', fontFamily: "'DM Mono', monospace" }}>
           powered by quelessly.
         </a>
       </div>
@@ -205,44 +219,48 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
   const displayCat = (item.categories ?? []).find(c => c !== 'Veg' && c !== 'Non-Veg')
 
   return (
-    <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 flex flex-col transition-all duration-200 hover:border-zinc-700 active:scale-[0.98]">
-      <div className="aspect-square bg-zinc-800 flex items-center justify-center relative">
+    <div className="menu-card">
+      {/* Image area */}
+      <div style={{ aspectRatio: '1', background: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         {item.image_url ? (
-          <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
+          <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
         ) : (
-          <div className="flex flex-col items-center gap-1.5 opacity-30">
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
-              <rect x="3" y="3" width="18" height="18" rx="3" />
-              <circle cx="8.5" cy="8.5" r="1.5" />
-              <path d="M21 15l-5-5L5 21" />
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, opacity: 0.25 }}>
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8a7f72" strokeWidth="1.5">
+              <rect x="3" y="3" width="18" height="18" rx="3" /><circle cx="8.5" cy="8.5" r="1.5" /><path d="M21 15l-5-5L5 21" />
             </svg>
           </div>
         )}
         {(isVeg || isNonVeg) && (
-          <div className={`absolute top-2 left-2 w-4 h-4 rounded flex items-center justify-center border ${isVeg ? 'border-emerald-500 bg-black/70' : 'border-rose-500 bg-black/70'}`}>
-            <div className={`w-2 h-2 rounded-full ${isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
+          <div style={{ position: 'absolute', top: 8, left: 8, width: 16, height: 16, borderRadius: 4, display: 'flex', alignItems: 'center', justifyContent: 'center', border: `1.5px solid ${isVeg ? '#10b981' : '#f43f5e'}`, background: 'rgba(250,247,242,0.9)' }}>
+            <div style={{ width: 7, height: 7, borderRadius: '50%', background: isVeg ? '#10b981' : '#f43f5e' }} />
           </div>
         )}
       </div>
-      <div className="p-3 flex flex-col gap-2 flex-1">
+
+      {/* Content */}
+      <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         <div>
-          <p className="font-semibold text-white text-sm leading-tight line-clamp-2">{item.name}</p>
+          <p style={{ fontWeight: 600, color: '#1a1714', fontSize: 13, lineHeight: 1.3, margin: '0 0 4px', fontFamily: "'DM Sans', sans-serif", display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</p>
           {showCategory && displayCat && (
-            <div className="mt-1">
-              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(displayCat)}`}>{displayCat}</span>
-            </div>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(displayCat)}`} style={{ fontSize: 10, fontFamily: "'DM Mono', monospace" }}>{displayCat}</span>
           )}
         </div>
-        <div className="flex items-center justify-between mt-auto">
-          <span className="font-bold text-sm text-white">₹{item.price}</span>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
+          <span style={{ fontWeight: 700, fontSize: 14, color: '#1a1714', fontFamily: "'DM Mono', monospace" }}>₹{item.price}</span>
           {qty > 0 ? (
-            <div className="flex items-center gap-1.5 bg-zinc-800 border border-lime-400/40 rounded-full px-2 py-0.5">
-              <button onClick={onRemove} className="w-4 h-4 flex items-center justify-center text-lime-400 font-black text-sm leading-none active:scale-90 transition-transform">−</button>
-              <span className="text-white font-bold text-xs tabular-nums w-3 text-center">{qty}</span>
-              <button onClick={onAdd} className="w-4 h-4 flex items-center justify-center text-lime-400 font-black text-sm leading-none active:scale-90 transition-transform">+</button>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#FAF7F2', border: '1.5px solid rgba(255,107,0,0.3)', borderRadius: 20, padding: '2px 6px' }}>
+              <button onClick={onRemove} className="qty-btn">−</button>
+              <span style={{ color: '#1a1714', fontWeight: 700, fontSize: 13, minWidth: 14, textAlign: 'center', fontFamily: "'DM Mono', monospace" }}>{qty}</span>
+              <button onClick={onAdd} className="qty-btn">+</button>
             </div>
           ) : (
-            <button onClick={onAdd} className="w-7 h-7 bg-zinc-800 hover:bg-zinc-700 rounded-full flex items-center justify-center text-white font-bold text-sm active:scale-90 transition-all border border-zinc-700 hover:border-lime-400/30">+</button>
+            <button onClick={onAdd}
+              style={{ width: 30, height: 30, background: '#FAF7F2', border: '1.5px solid rgba(26,23,20,0.12)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ff6b00', fontWeight: 800, fontSize: 18, cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => { (e.currentTarget as HTMLElement).style.background = '#ff6b00'; (e.currentTarget as HTMLElement).style.color = '#fff'; (e.currentTarget as HTMLElement).style.borderColor = '#ff6b00' }}
+              onMouseLeave={e => { (e.currentTarget as HTMLElement).style.background = '#FAF7F2'; (e.currentTarget as HTMLElement).style.color = '#ff6b00'; (e.currentTarget as HTMLElement).style.borderColor = 'rgba(26,23,20,0.12)' }}>
+              +
+            </button>
           )}
         </div>
       </div>
