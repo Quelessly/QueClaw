@@ -66,7 +66,8 @@ const STEPPER_STEPS = [
 ]
 
 export default function OrderPage() {
-  const { orderId } = useParams()
+  const params = useParams()
+  const orderId = Array.isArray(params.orderId) ? params.orderId[0] : params.orderId
   const router = useRouter()
   const [order, setOrder] = useState<Order | null>(null)
   const [loading, setLoading] = useState(true)
@@ -78,6 +79,8 @@ export default function OrderPage() {
   }
 
   useEffect(() => {
+    if (!orderId) return
+    
     api.get(`/orders/${orderId}`)
       .then((res) => { if (res.success) setOrder(res.data) })
       .finally(() => setLoading(false))
