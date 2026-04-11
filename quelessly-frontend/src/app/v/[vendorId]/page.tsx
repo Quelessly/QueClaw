@@ -62,13 +62,31 @@ export default function MenuPage() {
     api.get(`/auth/vendor/${vendorId}`).then(res => { if (res.success && res.data?.name) setVendorName(res.data.name.toLowerCase()) })
   }, [vendorId])
 
+  // Check active order — verify status from API and auto-clear if done
   useEffect(() => {
     const stored = localStorage.getItem('active_order')
-    if (stored) {
-      const order = JSON.parse(stored)
-      if (order.vendorId === vendorId && Date.now() - order.timestamp < 2 * 60 * 60 * 1000)
-        setActiveOrder({ orderId: order.orderId, total: order.total })
+    if (!stored) return
+    const order = JSON.parse(stored)
+    if (order.vendorId !== vendorId) return
+    if (Date.now() - order.timestamp >= 2 * 60 * 60 * 1000) {
+      localStorage.removeItem('active_order')
+      return
     }
+    // Fetch real status — clear banner if order is completed/cancelled
+    api.get(`/orders/${order.orderId}`).then(res => {
+      if (res.success) {
+        const status = res.data?.status
+        if (status === 'completed' || status === 'cancelled') {
+          localStorage.removeItem('active_order')
+          setActiveOrder(null)
+        } else {
+          setActiveOrder({ orderId: order.orderId, total: order.total })
+        }
+      }
+    }).catch(() => {
+      // If fetch fails just show the banner anyway
+      setActiveOrder({ orderId: order.orderId, total: order.total })
+    })
   }, [vendorId])
 
   const categories = useMemo(() => ['All', ...Array.from(new Set(items.flatMap(i => i.categories ?? [])))], [items])
@@ -97,11 +115,7 @@ export default function MenuPage() {
       {/* Fixed header */}
       <div className={`fixed top-0 left-0 right-0 z-50 transition-transform duration-300 ${headerHidden ? '-translate-y-full' : 'translate-y-0'}`}>
         <div className="mx-4 mt-4 glass rounded-full px-5 py-3 flex items-center justify-between">
-          {/* Home link — taps to quelessly.com */}
-          <a
-            href="https://quelessly.com"
-            className="font-display font-bold text-white tracking-tighter text-base lowercase hover:text-lime-400 transition-colors"
-          >
+          <a href="https://quelessly.com" className="font-display font-bold text-white tracking-tighter text-base lowercase hover:text-lime-400 transition-colors">
             {vendorName}
           </a>
           <div className="flex items-center gap-1.5">
@@ -135,7 +149,7 @@ export default function MenuPage() {
         ))}
       </div>
 
-      {/* Active order banner */}
+      {/* Active order banner — only shows for non-completed orders */}
       {activeOrder && (
         <div className="px-4 pb-2">
           <button onClick={() => router.push(`/order/${activeOrder.orderId}`)}
@@ -154,25 +168,16 @@ export default function MenuPage() {
         {loading
           ? Array.from({ length: 6 }).map((_, i) => <SkeletonMenuCard key={i} />)
           : filtered.length === 0
-          ? (
-            <div className="col-span-2 text-center py-20">
-              <p className="text-zinc-400 font-medium">Nothing found</p>
-            </div>
-          )
+          ? <div className="col-span-2 text-center py-20"><p className="text-zinc-400 font-medium">Nothing found</p></div>
           : filtered.map(item => (
-            <MenuCard
-              key={item.id}
-              item={item}
-              qty={getQty(item.id)}
-              onAdd={() => addToCart(item)}
-              onRemove={() => removeFromCart(item.id)}
-              showCategory={activeCategory === 'All'}
-            />
+            <MenuCard key={item.id} item={item} qty={getQty(item.id)}
+              onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item.id)}
+              showCategory={activeCategory === 'All'} />
           ))
         }
       </div>
 
-      {/* Cart pill — Swiggy-style sticky bottom */}
+      {/* Cart pill */}
       {totalItems > 0 && (
         <button onClick={goToCart}
           className="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 bg-lime-400 text-black px-6 py-4 rounded-full glow-lime font-bold text-sm whitespace-nowrap flex items-center gap-4 active:scale-95 transition-all duration-300">
@@ -197,17 +202,14 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
 }) {
   const isVeg = (item.categories ?? []).includes('Veg')
   const isNonVeg = (item.categories ?? []).includes('Non-Veg')
-  // Show first non-veg/non-diet category as badge (only on "All" view)
   const displayCat = (item.categories ?? []).find(c => c !== 'Veg' && c !== 'Non-Veg')
 
   return (
     <div className="bg-zinc-900 rounded-2xl overflow-hidden border border-zinc-800 flex flex-col transition-all duration-200 hover:border-zinc-700 active:scale-[0.98]">
-      {/* Image area — neutral dark, no random colors */}
       <div className="aspect-square bg-zinc-800 flex items-center justify-center relative">
         {item.image_url ? (
           <img src={item.image_url} alt={item.name} className="w-full h-full object-cover" />
         ) : (
-          // Clean placeholder — no emoji, no random color
           <div className="flex flex-col items-center gap-1.5 opacity-30">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" className="text-zinc-400">
               <rect x="3" y="3" width="18" height="18" rx="3" />
@@ -216,23 +218,18 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
             </svg>
           </div>
         )}
-        {/* Veg / Non-Veg dot — top-left on image (FSSAI standard) */}
         {(isVeg || isNonVeg) && (
           <div className={`absolute top-2 left-2 w-4 h-4 rounded flex items-center justify-center border ${isVeg ? 'border-emerald-500 bg-black/70' : 'border-rose-500 bg-black/70'}`}>
             <div className={`w-2 h-2 rounded-full ${isVeg ? 'bg-emerald-500' : 'bg-rose-500'}`} />
           </div>
         )}
       </div>
-
       <div className="p-3 flex flex-col gap-2 flex-1">
         <div>
           <p className="font-semibold text-white text-sm leading-tight line-clamp-2">{item.name}</p>
-          {/* Only show category badge when viewing "All" — hidden when already filtered */}
           {showCategory && displayCat && (
             <div className="mt-1">
-              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(displayCat)}`}>
-                {displayCat}
-              </span>
+              <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(displayCat)}`}>{displayCat}</span>
             </div>
           )}
         </div>
