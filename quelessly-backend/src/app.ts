@@ -15,9 +15,7 @@ app.set('trust proxy', 1) // ✅ Trust Railway's proxy to get real client IPs
 
 app.use(helmet())
 
-app.get('/api/v1/sentry-test', () => {
-  throw new Error('Sentry test error from Quelessly backend')
-})
+
 
 app.use(cors({
   origin: [
