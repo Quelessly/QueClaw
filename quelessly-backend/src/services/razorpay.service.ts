@@ -9,7 +9,7 @@ export const razorpay = new Razorpay({
 
 export const createRazorpayOrder = async (amount: number, orderId: string) => {
   return razorpay.orders.create({
-    amount: Math.round(amount * 100), // paise
+    amount: Math.round(amount * 100),
     currency: 'INR',
     receipt: orderId,
   })
@@ -33,7 +33,7 @@ export const verifyWebhookSignature = (
   signature: string
 ): boolean => {
   const expected = crypto
-    .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
+    .createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET)  // ← separate secret now
     .update(rawBody)
     .digest('hex')
   return expected === signature

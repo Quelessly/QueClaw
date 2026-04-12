@@ -54,6 +54,11 @@ export const verifyAndCapture = async (
   const payment = await paymentRepo.getPaymentByRazorpayOrderId(razorpay_order_id)
   if (!payment) throw new Error('Payment record not found')
 
+  // ✅ Idempotency guard — already captured, skip everything
+  if (payment.status === PaymentStatus.captured) {
+    return { success: true, order_id: payment.order_id }
+  }
+
   const order = await orderRepo.getOrderById(payment.order_id)
 
   await prisma.$transaction([
@@ -75,16 +80,10 @@ export const verifyAndCapture = async (
     }),
   ])
 
-  // Notify vendor of new paid order
   try {
     const io = getIO()
-
-    // Fetch full order with items so vendor dashboard renders correctly
     const fullOrder = await orderRepo.getOrderById(payment.order_id)
-
     io.to(`vendor_${order?.vendor_id}`).emit('new_order', fullOrder)
-
-    // Notify student their payment went through
     io.to(`order_${payment.order_id}`).emit('payment_success', {
       order_id: payment.order_id,
     })

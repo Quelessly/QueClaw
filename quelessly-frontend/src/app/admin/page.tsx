@@ -4,112 +4,107 @@ import { useState } from 'react'
 import Link from 'next/link'
 
 const API = process.env.NEXT_PUBLIC_API_URL
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,700;1,9..144,700&family=DM+Sans:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap');`
 
 export default function AdminPage() {
   const [step, setStep] = useState<'invite' | 'verify' | 'done'>('invite')
-
   const [adminSecret, setAdminSecret] = useState('')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
   const [upiId, setUpiId] = useState('')
-
   const [otp, setOtp] = useState('')
   const [password, setPassword] = useState('')
-
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [createdVendor, setCreatedVendor] = useState<any>(null)
 
   const handleInvite = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault(); setError(''); setLoading(true)
     try {
       const res = await fetch(`${API}/admin/invite-vendor`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminSecret, name, email, phone, upiId: upiId || undefined }),
       }).then(r => r.json())
-      if (res.success) {
-        setStep('verify')
-      } else {
-        setError(res.message || 'Something went wrong')
-      }
-    } catch {
-      setError('Could not reach server')
-    } finally {
-      setLoading(false)
-    }
+      if (res.success) setStep('verify')
+      else setError(res.message || 'Something went wrong')
+    } catch { setError('Could not reach server') }
+    finally { setLoading(false) }
   }
 
   const handleVerify = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
+    e.preventDefault(); setError(''); setLoading(true)
     try {
       const res = await fetch(`${API}/admin/verify-vendor`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ adminSecret, email, otp, password }),
       }).then(r => r.json())
-      if (res.success) {
-        setCreatedVendor(res.data)
-        setStep('done')
-      } else {
-        setError(res.message || 'Invalid OTP')
-      }
-    } catch {
-      setError('Could not reach server')
-    } finally {
-      setLoading(false)
-    }
+      if (res.success) { setCreatedVendor(res.data); setStep('done') }
+      else setError(res.message || 'Invalid OTP')
+    } catch { setError('Could not reach server') }
+    finally { setLoading(false) }
   }
 
   const reset = () => {
-    setStep('invite')
-    setName(''); setEmail(''); setPhone(''); setUpiId('')
-    setOtp(''); setPassword(''); setError('')
-    setCreatedVendor(null)
+    setStep('invite'); setName(''); setEmail(''); setPhone(''); setUpiId('')
+    setOtp(''); setPassword(''); setError(''); setCreatedVendor(null)
+  }
+
+  const stepIndex = step === 'invite' ? 0 : step === 'verify' ? 1 : 2
+
+  const inputStyle: React.CSSProperties = {
+    width: '100%', background: '#18181b', border: '1px solid #27272a', borderRadius: 12,
+    padding: '10px 16px', fontSize: 14, color: '#fff', outline: 'none',
+    fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box',
+  }
+  const labelStyle: React.CSSProperties = {
+    display: 'block', fontSize: 10, fontWeight: 600, color: '#52525b',
+    letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6,
+    fontFamily: "'DM Mono', monospace",
   }
 
   return (
-    <div className="min-h-screen bg-zinc-950 flex items-center justify-center px-5">
-      <div className="w-full max-w-sm">
+    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px', fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`${FONTS} * { box-sizing: border-box; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-        <div className="text-center mb-8">
-          <div className="w-14 h-14 bg-lime-400 rounded-3xl mx-auto mb-4 flex items-center justify-center">
-            <span className="text-black font-black text-2xl">Q</span>
+      <div style={{ width: '100%', maxWidth: 360 }}>
+
+        {/* Header */}
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
+          <div style={{ width: 56, height: 56, background: '#ff6b00', borderRadius: 16, margin: '0 auto 16px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 24, color: '#fff' }}>Q</span>
           </div>
-          <h1 className="text-2xl font-bold text-white tracking-tighter">Admin Panel</h1>
-          <p className="text-zinc-600 text-xs mt-1">Vendor onboarding</p>
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 22, color: '#fff', letterSpacing: '-0.5px', margin: '0 0 4px' }}>Admin Panel</h1>
+          <p style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>Vendor onboarding</p>
         </div>
 
-        <div className="flex items-center gap-2 mb-6">
-          {['Send OTP', 'Verify & Create', 'Done'].map((label, i) => {
-            const stepIndex = step === 'invite' ? 0 : step === 'verify' ? 1 : 2
-            return (
-              <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs font-bold transition-colors ${
-                  i < stepIndex ? 'bg-lime-400 text-black'
-                  : i === stepIndex ? 'bg-lime-400/20 text-lime-400 border border-lime-400/50'
-                  : 'bg-zinc-800 text-zinc-600'
-                }`}>
-                  {i < stepIndex ? '✓' : i + 1}
-                </div>
-                <span className={`text-[10px] font-semibold ${i === stepIndex ? 'text-zinc-400' : 'text-zinc-700'}`}>
-                  {label}
-                </span>
+        {/* Stepper */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 24 }}>
+          {['Send OTP', 'Verify & Create', 'Done'].map((label, i) => (
+            <div key={i} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }}>
+              <div style={{
+                width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontSize: 11, fontWeight: 700, fontFamily: "'DM Mono', monospace",
+                background: i < stepIndex ? '#ff6b00' : i === stepIndex ? 'rgba(255,107,0,0.15)' : '#18181b',
+                color: i < stepIndex ? '#fff' : i === stepIndex ? '#ff6b00' : '#52525b',
+                border: i === stepIndex ? '1px solid rgba(255,107,0,0.4)' : 'none',
+                transition: 'all 0.3s',
+              }}>
+                {i < stepIndex ? '✓' : i + 1}
               </div>
-            )
-          })}
+              <span style={{ fontSize: 10, fontWeight: 600, color: i === stepIndex ? '#a1a1aa' : '#3f3f46', fontFamily: "'DM Mono', monospace" }}>
+                {label}
+              </span>
+            </div>
+          ))}
         </div>
 
-        <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
+        {/* Card */}
+        <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 20, padding: 24 }}>
 
           {step === 'invite' && (
-            <form onSubmit={handleInvite} className="space-y-3">
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-4">New Vendor Details</p>
+            <form onSubmit={handleInvite} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <p style={{ fontSize: 10, fontWeight: 600, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", marginBottom: 4 }}>New Vendor Details</p>
               {[
                 { label: 'Admin Secret', value: adminSecret, set: setAdminSecret, type: 'password', placeholder: '••••••••', required: true },
                 { label: 'Vendor Name', value: name, set: setName, type: 'text', placeholder: 'The Canteen', required: true },
@@ -117,126 +112,91 @@ export default function AdminPage() {
                 { label: 'Phone Number', value: phone, set: setPhone, type: 'tel', placeholder: '+91 98765 43210', required: true },
               ].map(({ label, value, set, type, placeholder, required }) => (
                 <div key={label}>
-                  <label className="block text-xs font-bold text-zinc-600 uppercase tracking-widest mb-1.5">
-                    {label}
-                  </label>
-                  <input
-                    type={type}
-                    value={value}
-                    onChange={e => set(e.target.value)}
-                    required={required}
-                    placeholder={placeholder}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
-                  />
+                  <label style={labelStyle}>{label}</label>
+                  <input type={type} value={value} onChange={e => set(e.target.value)} required={required} placeholder={placeholder} style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                    onBlur={e => e.target.style.borderColor = '#27272a'} />
                 </div>
               ))}
               <div>
-                <label className="block text-xs font-bold text-zinc-600 uppercase tracking-widest mb-1.5">
-                  UPI ID <span className="text-zinc-700 normal-case font-normal">(optional)</span>
-                </label>
-                <input
-                  type="text"
-                  value={upiId}
-                  onChange={e => setUpiId(e.target.value)}
-                  placeholder="vendor@upi"
-                  className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
-                />
+                <label style={labelStyle}>UPI ID <span style={{ color: '#3f3f46', textTransform: 'none', fontWeight: 400, letterSpacing: 0, fontFamily: "'DM Sans', sans-serif" }}>(optional)</span></label>
+                <input type="text" value={upiId} onChange={e => setUpiId(e.target.value)} placeholder="vendor@upi" style={inputStyle}
+                  onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                  onBlur={e => e.target.style.borderColor = '#27272a'} />
               </div>
-              {error && <p className="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">{error}</p>}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 bg-lime-400 text-black py-3 rounded-xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
-              >
-                {loading
-                  ? <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> Sending OTP…</>
-                  : 'Send OTP →'}
+              {error && <p style={{ color: '#f87171', fontSize: 12, background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.2)', borderRadius: 10, padding: '8px 12px' }}>{error}</p>}
+              <button type="submit" disabled={loading}
+                style={{ marginTop: 4, background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
+                {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Sending OTP…</> : 'Send OTP →'}
               </button>
             </form>
           )}
 
           {step === 'verify' && (
-            <form onSubmit={handleVerify} className="space-y-3">
-              <div className="bg-zinc-800 rounded-xl px-4 py-3 mb-4">
-                <p className="text-xs text-zinc-500">OTP sent to</p>
-                <p className="text-sm text-white font-mono mt-0.5">{email}</p>
+            <form onSubmit={handleVerify} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+              <div style={{ background: '#18181b', borderRadius: 12, padding: '12px 16px', marginBottom: 4 }}>
+                <p style={{ color: '#52525b', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>OTP sent to</p>
+                <p style={{ color: '#fff', fontSize: 13, fontFamily: "'DM Mono', monospace", marginTop: 2 }}>{email}</p>
               </div>
               {[
                 { label: 'OTP Code', value: otp, set: setOtp, type: 'text', placeholder: '123456' },
                 { label: 'Set Password', value: password, set: setPassword, type: 'password', placeholder: 'Min 8 characters' },
               ].map(({ label, value, set, type, placeholder }) => (
                 <div key={label}>
-                  <label className="block text-xs font-bold text-zinc-600 uppercase tracking-widest mb-1.5">
-                    {label}
-                  </label>
-                  <input
-                    type={type}
-                    value={value}
-                    onChange={e => set(e.target.value)}
-                    required
-                    placeholder={placeholder}
-                    className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-zinc-600 outline-none focus:border-lime-400/50 transition-colors"
-                  />
+                  <label style={labelStyle}>{label}</label>
+                  <input type={type} value={value} onChange={e => set(e.target.value)} required placeholder={placeholder} style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                    onBlur={e => e.target.style.borderColor = '#27272a'} />
                 </div>
               ))}
-              {error && <p className="text-rose-400 text-xs bg-rose-500/10 border border-rose-500/20 rounded-xl px-3 py-2">{error}</p>}
-              <button
-                type="submit"
-                disabled={loading}
-                className="w-full mt-2 bg-lime-400 text-black py-3 rounded-xl font-bold text-sm disabled:opacity-50 flex items-center justify-center gap-2 active:scale-[0.98] transition-all"
-              >
-                {loading
-                  ? <><span className="w-4 h-4 border-2 border-black border-t-transparent rounded-full animate-spin" /> Creating…</>
-                  : 'Create Vendor Account →'}
+              {error && <p style={{ color: '#f87171', fontSize: 12, background: 'rgba(244,63,94,0.08)', border: '1px solid rgba(244,63,94,0.2)', borderRadius: 10, padding: '8px 12px' }}>{error}</p>}
+              <button type="submit" disabled={loading}
+                style={{ marginTop: 4, background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
+                {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Creating…</> : 'Create Vendor Account →'}
               </button>
-              <button type="button" onClick={() => { setStep('invite'); setError('') }} className="w-full text-zinc-600 text-xs py-2 hover:text-zinc-400 transition-colors">
+              <button type="button" onClick={() => { setStep('invite'); setError('') }}
+                style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', padding: '8px 0', fontFamily: "'DM Sans', sans-serif' " }}>
                 ← Back
               </button>
             </form>
           )}
 
           {step === 'done' && createdVendor && (
-            <div className="text-center space-y-4">
-              <div className="w-14 h-14 bg-lime-400/10 border border-lime-400/30 rounded-full flex items-center justify-center mx-auto text-2xl">
-                ✓
-              </div>
+            <div style={{ textAlign: 'center', display: 'flex', flexDirection: 'column', gap: 16, alignItems: 'center' }}>
+              <div style={{ width: 56, height: 56, background: 'rgba(255,107,0,0.1)', border: '1px solid rgba(255,107,0,0.3)', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 24, color: '#ff6b00' }}>✓</div>
               <div>
-                <p className="text-white font-bold">Vendor created!</p>
-                <p className="text-zinc-500 text-xs mt-1">They can now log in to their dashboard</p>
+                <p style={{ color: '#fff', fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Vendor created!</p>
+                <p style={{ color: '#52525b', fontSize: 12, marginTop: 4, fontFamily: "'DM Sans', sans-serif" }}>They can now log in to their dashboard</p>
               </div>
-              <div className="bg-zinc-800 rounded-xl p-4 text-left space-y-2">
-                <div>
-                  <p className="text-zinc-600 text-[10px] uppercase tracking-widest">Name</p>
-                  <p className="text-white text-sm font-mono">{createdVendor.name}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-600 text-[10px] uppercase tracking-widest">Email</p>
-                  <p className="text-white text-sm font-mono">{createdVendor.email}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-600 text-[10px] uppercase tracking-widest">UPI ID</p>
-                  <p className="text-white text-sm font-mono">{createdVendor.upi_id ?? '—'}</p>
-                </div>
-                <div>
-                  <p className="text-zinc-600 text-[10px] uppercase tracking-widest">Vendor ID</p>
-                  <p className="text-white text-sm font-mono">{createdVendor.id}</p>
-                </div>
+              <div style={{ background: '#18181b', borderRadius: 14, padding: 16, textAlign: 'left', width: '100%', display: 'flex', flexDirection: 'column', gap: 12 }}>
+                {[
+                  ['Name', createdVendor.name],
+                  ['Email', createdVendor.email],
+                  ['UPI ID', createdVendor.upi_id ?? '—'],
+                  ['Vendor ID', createdVendor.id],
+                ].map(([label, val]) => (
+                  <div key={label}>
+                    <p style={{ color: '#52525b', fontSize: 10, letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", marginBottom: 2 }}>{label}</p>
+                    <p style={{ color: '#fff', fontSize: 13, fontFamily: "'DM Mono', monospace" }}>{val}</p>
+                  </div>
+                ))}
               </div>
-              <button
-                onClick={reset}
-                className="w-full bg-zinc-800 text-white py-3 rounded-xl font-bold text-sm hover:bg-zinc-700 transition-colors"
-              >
+              <button onClick={reset}
+                style={{ width: '100%', background: '#18181b', color: '#fff', border: '1px solid #27272a', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, fontFamily: "'DM Sans', sans-serif", cursor: 'pointer' }}>
                 Add Another Vendor
               </button>
             </div>
           )}
         </div>
 
-        <div className="text-center mt-6 space-y-2">
-          <Link href="/admin/settlements" className="block text-zinc-600 text-xs hover:text-lime-400 transition-colors">
+        {/* Footer links */}
+        <div style={{ textAlign: 'center', marginTop: 24, display: 'flex', flexDirection: 'column', gap: 8 }}>
+          <Link href="/admin/settlements" style={{ color: '#52525b', fontSize: 12, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif" }}
+            onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#ff6b00'}
+            onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
             View Settlements →
           </Link>
-          <p className="text-zinc-800 text-xs">quelessly admin · internal use only</p>
+          <p style={{ color: '#27272a', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>quelessly admin · internal use only</p>
         </div>
       </div>
     </div>

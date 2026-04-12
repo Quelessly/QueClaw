@@ -2,26 +2,42 @@ import Link from 'next/link'
 
 export default function Footer() {
   return (
-    <footer className="border-t border-zinc-900 bg-black mt-16">
-      <div className="max-w-4xl mx-auto px-5 py-10">
-        <div className="flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-lime-400 rounded-xl flex items-center justify-center">
-              <span className="text-black font-black text-sm">Q</span>
+    <footer style={{ borderTop: '1px solid rgba(26,23,20,0.08)', background: '#023341', marginTop: 64 }}>
+      <div style={{ maxWidth: 960, margin: '0 auto', padding: '40px 20px' }}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 24 }}>
+
+          {/* Logo */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <div style={{ width: 28, height: 28, background: '#ff6b00', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 14, color: '#fff' }}>Q</span>
             </div>
-            <span className="text-white font-bold tracking-tighter">quelessly.</span>
+            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: '-0.3px' }}>quelessly.</span>
           </div>
-          <nav className="flex flex-wrap justify-center gap-x-6 gap-y-2 text-xs text-zinc-500">
-            <Link href="/about" className="hover:text-zinc-300 transition-colors">About</Link>
-            <Link href="/contact" className="hover:text-zinc-300 transition-colors">Contact</Link>
-            <Link href="/privacy" className="hover:text-zinc-300 transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-zinc-300 transition-colors">Terms & Conditions</Link>
-            <Link href="/refunds" className="hover:text-zinc-300 transition-colors">Refund Policy</Link>
+
+          {/* Nav links */}
+          <nav style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '8px 24px' }}>
+            {[
+              ['About', '/about'],
+              ['Contact', '/contact'],
+              ['Privacy Policy', '/privacy'],
+              ['Terms & Conditions', '/terms'],
+              ['Refund Policy', '/refunds'],
+            ].map(([label, href]) => (
+              <Link key={label} href={href}
+                style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontFamily: "'DM Sans', sans-serif", transition: 'color 0.2s' }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)'}>
+                {label}
+              </Link>
+            ))}
           </nav>
+
+          {/* Copyright */}
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "'DM Mono', monospace" }}>
+            © {new Date().getFullYear()} Quelessly. All rights reserved.
+          </p>
+
         </div>
-        <p className="text-center text-zinc-700 text-xs mt-8">
-          © {new Date().getFullYear()} Quelessly. All rights reserved.
-        </p>
       </div>
     </footer>
   )

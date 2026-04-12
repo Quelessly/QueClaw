@@ -125,7 +125,7 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
 
   return (
     <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px', fontFamily: "'DM Sans', sans-serif" }}>
-      <style>{FONTS}</style>
+      <style>{`${FONTS} @keyframes spin { to { transform: rotate(360deg); } }`}</style>
       <div style={{ width: '100%', maxWidth: 360 }}>
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ width: 64, height: 64, background: '#ff6b00', borderRadius: 16, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -157,7 +157,6 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
           </form>
         </div>
       </div>
-      <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </div>
   )
 }
@@ -178,7 +177,10 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
     try {
       socket = getSocket()
       if (socket) {
-        if (vendor?.id) socket.emit('join_vendor', vendor.id)
+        if (vendor?.id) {
+          socket.emit('join_vendor', vendor.id)
+          socket.on('connect', () => { socket!.emit('join_vendor', vendor.id) })
+        }
         socket.on('new_order', (data: Order) => {
           if (!data?.id) return
           setOrders(prev => [data, ...prev])
@@ -228,52 +230,47 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
   const tabLabel = tab === 'orders' ? 'orders.' : tab === 'menu' ? 'menu.' : tab === 'qr' ? 'qr code.' : 'settings.'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-black flex" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         ${FONTS}
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .dash-sidebar-btn { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; transition:all 0.2s; }
-        .dash-sidebar-btn:hover { background:#18181b !important; color:#d4d4d8 !important; }
+        .sidebar-btn { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; transition:all 0.2s; position:relative; }
+        .sidebar-btn:hover { background:#18181b !important; }
       `}</style>
 
-      {/* Desktop sidebar */}
-      <aside style={{ display: 'none' }} className="md-sidebar">
-        <style>{`
-          @media(min-width:768px){
-            .md-sidebar { display:flex !important; position:fixed; left:0; top:0; bottom:0; width:80px; background:#0a0a0a; borderRight:1px solid #18181b; flexDirection:column; alignItems:center; padding:32px 0; gap:8px; zIndex:40; }
-            .md-main { margin-left:80px !important; }
-            .md-bottomnav { display:none !important; }
-            .md-logout-mobile { display:none !important; }
-          }
-        `}</style>
-        {/* Logo */}
-        <div style={{ width: 40, height: 40, background: '#ff6b00', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+      {/* ── Desktop sidebar — Tailwind hidden/flex controls visibility ── */}
+      <aside className="hidden md:flex flex-col items-center py-8 gap-2 fixed left-0 top-0 bottom-0 z-40"
+        style={{ width: 80, background: '#0a0a0a', borderRight: '1px solid #18181b' }}>
+        <div style={{ width: 40, height: 40, background: '#ff6b00', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, flexShrink: 0 }}>
           <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#fff' }}>Q</span>
         </div>
         {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} title={t.label} className="dash-sidebar-btn"
-            style={{ background: tab === t.key ? 'rgba(255,107,0,0.12)' : 'transparent', color: tab === t.key ? '#ff6b00' : '#52525b', position: 'relative' }}>
+          <button key={t.key} onClick={() => setTab(t.key)} title={t.label} className="sidebar-btn"
+            style={{ background: tab === t.key ? 'rgba(255,107,0,0.12)' : 'transparent', color: tab === t.key ? '#ff6b00' : '#52525b' }}>
             {t.icon}
             {t.badge !== undefined && (
-              <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, background: '#ff6b00', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Mono', monospace" }}>
+              <span className="absolute -top-1 -right-1 flex items-center justify-center"
+                style={{ width: 16, height: 16, background: '#ff6b00', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: '50%', fontFamily: "'DM Mono', monospace" }}>
                 {t.badge > 9 ? '9+' : t.badge}
               </span>
             )}
           </button>
         ))}
-        <div style={{ flex: 1 }} />
-        <button onClick={onLogout} title="Logout" className="dash-sidebar-btn" style={{ background: 'transparent', color: '#3f3f46' }}>
+        <div className="flex-1" />
+        <button onClick={onLogout} title="Logout" className="sidebar-btn"
+          style={{ background: 'transparent', color: '#3f3f46' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
         </button>
       </aside>
 
-      {/* Main */}
-      <main className="md-main" style={{ flex: 1, paddingBottom: 96, minHeight: '100vh', background: '#000' }}>
+      {/* ── Main — md:ml-[80px] shifts content right on desktop ── */}
+      <main className="flex-1 md:ml-[80px] pb-24 md:pb-0 min-h-screen bg-black">
         {/* Top bar */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 30, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #18181b', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="sticky top-0 z-30 flex items-center justify-between"
+          style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #18181b', padding: '16px 20px' }}>
           <div>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{tabLabel}</h2>
             {tab === 'orders' && (
@@ -284,21 +281,22 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
             )}
             {vendor && tab !== 'orders' && <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{vendor.name}</p>}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="flex items-center gap-3">
             {tab === 'orders' && activeOrders.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="flex items-center gap-1.5">
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 <span style={{ fontSize: 12, color: '#52525b', fontFamily: "'DM Mono', monospace" }}>Live</span>
               </div>
             )}
-            <button onClick={onLogout} className="md-logout-mobile"
+            {/* Logout button — mobile only */}
+            <button onClick={onLogout} className="md:hidden"
               style={{ fontSize: 12, color: '#52525b', border: '1px solid #27272a', padding: '6px 12px', borderRadius: 8, background: 'transparent', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
               Logout
             </button>
           </div>
         </div>
 
-        <div style={{ padding: '16px' }}>
+        <div style={{ padding: 16 }}>
           {tab === 'orders' && <OrdersTab activeOrders={activeOrders} pastOrders={pastOrders} todayOrders={todayOrders} todayRevenue={todayRevenue} loading={ordersLoading} newOrderIds={newOrderIds} onUpdateStatus={updateStatus} />}
           {tab === 'menu'     && <MenuTab token={token} toast={toast} />}
           {tab === 'qr'       && <QRTab vendorId={vendor?.id} vendorName={vendor?.name} />}
@@ -306,16 +304,19 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
         </div>
       </main>
 
-      {/* Mobile bottom nav */}
-      <nav className="md-bottomnav" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40, background: 'rgba(10,10,10,0.97)', backdropFilter: 'blur(20px)', borderTop: '1px solid #18181b', display: 'flex' }}>
+      {/* ── Mobile bottom nav — md:hidden hides on desktop ── */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex"
+        style={{ background: 'rgba(10,10,10,0.97)', backdropFilter: 'blur(20px)', borderTop: '1px solid #18181b' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '12px 0', gap: 2, background: 'none', border: 'none', cursor: 'pointer', color: tab === t.key ? '#ff6b00' : '#52525b', position: 'relative', transition: 'color 0.2s' }}>
-            {tab === t.key && <span style={{ position: 'absolute', top: 0, left: '25%', right: '25%', height: 2, background: '#ff6b00', borderRadius: '0 0 2px 2px' }} />}
+            className="flex-1 flex flex-col items-center justify-center relative"
+            style={{ padding: '12px 0', gap: 2, background: 'none', border: 'none', cursor: 'pointer', color: tab === t.key ? '#ff6b00' : '#52525b', transition: 'color 0.2s' }}>
+            {tab === t.key && <span className="absolute top-0 left-1/4 right-1/4" style={{ height: 2, background: '#ff6b00', borderRadius: '0 0 2px 2px' }} />}
             {t.icon}
             <span style={{ fontSize: 9, fontWeight: 600, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{t.label}</span>
             {t.badge !== undefined && (
-              <span style={{ position: 'absolute', top: 8, right: '25%', width: 14, height: 14, background: '#ff6b00', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="absolute top-2 right-1/4 flex items-center justify-center"
+                style={{ width: 14, height: 14, background: '#ff6b00', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: '50%' }}>
                 {t.badge > 9 ? '9+' : t.badge}
               </span>
             )}
@@ -465,14 +466,8 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
         </div>
       )}
       <div
-        style={{
-          background: '#111', border: `1px solid ${borderColor}`, borderRadius: 16, overflow: 'hidden',
-          boxShadow, opacity: dismissing ? 0 : 1,
-          transform: dismissing ? 'translateX(-100%)' : `translateX(${swipeX}px)`,
-          transition: swiping ? 'none' : 'transform 0.3s ease, opacity 0.3s ease',
-        }}
+        style={{ background: '#111', border: `1px solid ${borderColor}`, borderRadius: 16, overflow: 'hidden', boxShadow, opacity: dismissing ? 0 : 1, transform: dismissing ? 'translateX(-100%)' : `translateX(${swipeX}px)`, transition: swiping ? 'none' : 'transform 0.3s ease, opacity 0.3s ease' }}
         onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
-
         <div className={`h-1 w-full ${cfg.bar}`} />
         {isNew && (
           <div style={{ background: '#ff6b00', color: '#fff', fontSize: 11, fontWeight: 800, textAlign: 'center', padding: '6px 0', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace" }}>
@@ -484,15 +479,12 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
             ⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m
           </div>
         )}
-
         <div style={{ padding: 20 }}>
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
                 <span style={{ color: '#52525b', fontFamily: "'DM Mono', monospace", fontSize: 14 }}>#</span>
-                <p style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, color: '#fff', fontSize: 24, letterSpacing: '-1px', margin: 0 }}>
-                  {order.id.slice(0, 8).toUpperCase()}
-                </p>
+                <p style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, color: '#fff', fontSize: 24, letterSpacing: '-1px', margin: 0 }}>{order.id.slice(0, 8).toUpperCase()}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
                 <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>{time}</span>
@@ -512,7 +504,6 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
               )}
             </div>
           </div>
-
           <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
             {order.order_items?.map((item, idx) => (
               <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: idx !== 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
@@ -526,13 +517,11 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
               <span style={{ color: '#ff6b00', fontWeight: 800, fontSize: 18, fontFamily: "'DM Mono', monospace" }}>₹{Number(order.total_amount)}</span>
             </div>
           </div>
-
           {isPending && (
             <p style={{ color: '#3f3f46', fontSize: 12, textAlign: 'center', marginBottom: 12, fontFamily: "'DM Sans', sans-serif" }}>
               Waiting for payment · swipe left to dismiss
             </p>
           )}
-
           {action && (
             <button onClick={() => onUpdate(order.id, next!)} disabled={updating}
               style={{ width: '100%', padding: '14px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: action.bg, color: action.color, fontFamily: "'DM Sans', sans-serif", opacity: updating ? 0.6 : 1, transition: 'all 0.15s' }}>
@@ -859,24 +848,17 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
         <p style={{ fontSize: 11, color: '#3f3f46', fontFamily: "'DM Mono', monospace", wordBreak: 'break-all', textAlign: 'center', padding: '0 8px' }}>{menuUrl}</p>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <button onClick={downloadSVG}
-          style={{ background: '#111', border: '1px solid #27272a', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+        <button onClick={downloadSVG} style={{ background: '#111', border: '1px solid #27272a', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
           ⬇ Download
         </button>
-        <button onClick={copyLink}
-          style={{ background: '#ff6b00', border: 'none', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+        <button onClick={copyLink} style={{ background: '#ff6b00', border: 'none', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
           🔗 Copy Link
         </button>
       </div>
       <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 16, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
         <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>How it works</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          {[
-            ['Print & place', 'on each table or the counter'],
-            ['Customer scans', 'with their phone camera — no app needed'],
-            ['They order & pay', 'instantly via UPI / card'],
-            ['You get notified', 'in real time on this dashboard'],
-          ].map(([title, desc], i) => (
+          {[['Print & place', 'on each table or the counter'], ['Customer scans', 'with their phone camera — no app needed'], ['They order & pay', 'instantly via UPI / card'], ['You get notified', 'in real time on this dashboard']].map(([title, desc], i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
               <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#111', border: '1px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#ff6b00', flexShrink: 0, marginTop: 1, fontFamily: "'DM Mono', monospace" }}>{i + 1}</span>
               <div>
@@ -905,11 +887,8 @@ function SettingsTab({ vendor, token, toast, onLogout }: {
     setSaving(true)
     try {
       const res = await api.patch('/auth/profile', { name: name.trim() }, token)
-      if (res.success) {
-        const updated = { ...vendor, name: name.trim() }
-        localStorage.setItem('vendor_info', JSON.stringify(updated))
-        toast('Canteen name updated!', 'success')
-      } else { toast(res.message || 'Update failed', 'error') }
+      if (res.success) { localStorage.setItem('vendor_info', JSON.stringify({ ...vendor, name: name.trim() })); toast('Canteen name updated!', 'success') }
+      else toast(res.message || 'Update failed', 'error')
     } catch { toast('Could not reach server', 'error') }
     finally { setSaving(false) }
   }
@@ -941,7 +920,7 @@ function SettingsTab({ vendor, token, toast, onLogout }: {
       <div style={{ background: '#0d0d0d', border: '1px solid rgba(244,63,94,0.12)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>Account</p>
         <button onClick={onLogout}
-          style={{ width: '100%', background: 'rgba(244,63,94,0.08)', color: '#f87171', border: '1px solid rgba(244,63,94,0.2)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.15s' }}>
+          style={{ width: '100%', background: 'rgba(244,63,94,0.08)', color: '#f87171', border: '1px solid rgba(244,63,94,0.2)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
           Sign out
         </button>
       </div>
