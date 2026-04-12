@@ -1,4 +1,4 @@
-import express from 'express'
+import express, { Request, Response, NextFunction } from 'express'
 import cors from 'cors'
 import authRoutes from './routes/auth.routes'
 import menuRoutes from './routes/menu.routes'
@@ -18,6 +18,12 @@ app.use(cors({
   ],
   credentials: true,
 }))
+
+// ✅ Webhook route must receive raw body BEFORE express.json() parses it
+// Capture raw buffer and attach to req, then parse as JSON for the handler
+app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }))
+
+// All other routes use normal JSON parsing
 app.use(express.json())
 
 app.use('/api/v1/auth', authRoutes)
@@ -27,6 +33,6 @@ app.use('/api/v1/payments', paymentRoutes)
 app.use('/api/v1/admin', adminRoutes)
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }))
-app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }))
+app.get('/api/v1/health', (_, res) => res.json({ status: 'ok' }))
 
 export default app
