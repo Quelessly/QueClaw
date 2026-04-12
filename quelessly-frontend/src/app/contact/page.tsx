@@ -1,43 +1,71 @@
 import Footer from '@/components/Footer'
 
+const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
+
 export default function ContactPage() {
   return (
-    <div className="min-h-screen bg-black text-white">
-      <div className="max-w-2xl mx-auto px-5 py-16">
-        <div className="mb-10">
-          <div className="w-10 h-10 bg-lime-400 rounded-2xl flex items-center justify-center mb-6">
-            <span className="text-black font-black text-lg">Q</span>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', color: '#1a1714', fontFamily: "'DM Sans', sans-serif" }}>
+      <style>{`${FONTS} * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
+
+      <div style={{ maxWidth: 680, margin: '0 auto', padding: '64px 20px' }}>
+
+        {/* Header */}
+        <div style={{ marginBottom: 40 }}>
+          <div style={{ width: 44, height: 44, background: '#ff6b00', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
+            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff' }}>Q</span>
           </div>
-          <h1 className="text-4xl font-bold tracking-tighter mb-3">Contact Us</h1>
-          <p className="text-zinc-400">We're here to help. Reach out anytime.</p>
+          <h1 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 38, color: '#1a1714', letterSpacing: '-1.5px', marginBottom: 10 }}>Contact Us</h1>
+          <p style={{ color: '#8a7f72', fontSize: 16 }}>We're here to help. Reach out anytime.</p>
         </div>
 
-        <div className="space-y-6">
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6 space-y-4">
-            <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Email</p>
-              <a href="mailto:support@quelessly.com" className="text-lime-400 hover:underline text-lg font-mono">
-                support@quelessly.com
-              </a>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Response Time</p>
-              <p className="text-zinc-300">We typically respond within 24–48 business hours.</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Business Hours</p>
-              <p className="text-zinc-300">Monday – Saturday, 9:00 AM – 6:00 PM IST</p>
-            </div>
-            <div>
-              <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-1">Location</p>
-              <p className="text-zinc-300">Pune, Maharashtra, India</p>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Main contact card */}
+          <div style={{ background: '#fff', border: '1px solid rgba(26,23,20,0.07)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
+            {[
+              {
+                label: 'Email',
+                content: (
+                  <a href="mailto:support@quelessly.com"
+                    style={{ color: '#ff6b00', fontSize: 17, fontFamily: "'DM Mono', monospace", textDecoration: 'none', fontWeight: 500 }}
+                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}
+                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.textDecoration = 'none'}>
+                    support@quelessly.com
+                  </a>
+                ),
+              },
+              {
+                label: 'Response Time',
+                content: <p style={{ color: '#3d3830', fontSize: 15 }}>We typically respond within 24–48 business hours.</p>,
+              },
+              {
+                label: 'Business Hours',
+                content: <p style={{ color: '#3d3830', fontSize: 15 }}>Monday – Saturday, 9:00 AM – 6:00 PM IST</p>,
+              },
+              {
+                label: 'Location',
+                content: <p style={{ color: '#3d3830', fontSize: 15 }}>Pune, Maharashtra, India</p>,
+              },
+            ].map(({ label, content }, i, arr) => (
+              <div key={label}>
+                <p style={{ fontSize: 10, fontWeight: 600, color: '#8a7f72', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6, fontFamily: "'DM Mono', monospace" }}>{label}</p>
+                {content}
+                {i < arr.length - 1 && <div style={{ borderBottom: '1px solid rgba(26,23,20,0.06)', marginTop: 20 }} />}
+              </div>
+            ))}
           </div>
 
-          <div className="bg-zinc-900 border border-zinc-800 rounded-3xl p-6">
-            <p className="text-xs font-bold text-zinc-500 uppercase tracking-widest mb-3">For order issues</p>
-            <p className="text-zinc-300 text-sm leading-relaxed">
-              If you have an issue with a specific order — wrong items, quality concerns, or missing food — please contact the vendor directly at the canteen. Quelessly is a technology platform and does not handle food preparation or delivery. For payment-related issues, write to us at <a href="mailto:support@quelessly.com" className="text-lime-400 hover:underline">support@quelessly.com</a> with your order ID.
+          {/* Order issues card */}
+          <div style={{ background: '#fff', border: '1px solid rgba(26,23,20,0.07)', borderRadius: 20, padding: 24 }}>
+            <p style={{ fontSize: 10, fontWeight: 600, color: '#8a7f72', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12, fontFamily: "'DM Mono', monospace" }}>For order issues</p>
+            <p style={{ color: '#3d3830', fontSize: 14, lineHeight: 1.85 }}>
+              If you have an issue with a specific order — wrong items, quality concerns, or missing food — please contact the vendor directly at the canteen. Quelessly is a technology platform and does not handle food preparation or delivery. For payment-related issues, write to us at{' '}
+              <a href="mailto:support@quelessly.com" style={{ color: '#ff6b00', textDecoration: 'none', fontWeight: 500 }}
+                onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}
+                onMouseLeave={e => (e.currentTarget as HTMLElement).style.textDecoration = 'none'}>
+                support@quelessly.com
+              </a>{' '}
+              with your order ID.
             </p>
           </div>
         </div>
