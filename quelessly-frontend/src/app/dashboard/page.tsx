@@ -235,52 +235,47 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
   const tabLabel = tab === 'orders' ? 'orders.' : tab === 'menu' ? 'menu.' : tab === 'qr' ? 'qr code.' : 'settings.'
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-black flex" style={{ fontFamily: "'DM Sans', sans-serif" }}>
       <style>{`
         ${FONTS}
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        .dash-sidebar-btn { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; transition:all 0.2s; }
-        .dash-sidebar-btn:hover { background:#18181b !important; color:#d4d4d8 !important; }
       `}</style>
-
-      {/* Desktop sidebar */}
-      <aside style={{ display: 'none' }} className="md-sidebar">
-        <style>{`
-          @media(min-width:768px){
-            .md-sidebar { display:flex !important; position:fixed; left:0; top:0; bottom:0; width:80px; background:#0a0a0a; borderRight:1px solid #18181b; flexDirection:column; alignItems:center; padding:32px 0; gap:8px; zIndex:40; }
-            .md-main { margin-left:80px !important; }
-            .md-bottomnav { display:none !important; }
-            .md-logout-mobile { display:none !important; }
-          }
-        `}</style>
-        {/* Logo */}
+ 
+      {/* Desktop sidebar — hidden on mobile, flex column on md+ */}
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 z-40 flex-col items-center py-8 gap-2"
+        style={{ width: 80, background: '#0a0a0a', borderRight: '1px solid #18181b' }}>
         <div style={{ width: 40, height: 40, background: '#ff6b00', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
           <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#fff' }}>Q</span>
         </div>
         {TABS.map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} title={t.label} className="dash-sidebar-btn"
-            style={{ background: tab === t.key ? 'rgba(255,107,0,0.12)' : 'transparent', color: tab === t.key ? '#ff6b00' : '#52525b', position: 'relative' }}>
+          <button key={t.key} onClick={() => setTab(t.key)} title={t.label}
+            className="relative flex items-center justify-center transition-all duration-200 hover:bg-zinc-900"
+            style={{ width: 48, height: 48, borderRadius: 12, border: 'none', cursor: 'pointer', background: tab === t.key ? 'rgba(255,107,0,0.12)' : 'transparent', color: tab === t.key ? '#ff6b00' : '#52525b' }}>
             {t.icon}
             {t.badge !== undefined && (
-              <span style={{ position: 'absolute', top: -4, right: -4, width: 16, height: 16, background: '#ff6b00', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'DM Mono', monospace" }}>
+              <span className="absolute -top-1 -right-1 flex items-center justify-center"
+                style={{ width: 16, height: 16, background: '#ff6b00', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: '50%', fontFamily: "'DM Mono', monospace" }}>
                 {t.badge > 9 ? '9+' : t.badge}
               </span>
             )}
           </button>
         ))}
-        <div style={{ flex: 1 }} />
-        <button onClick={onLogout} title="Logout" className="dash-sidebar-btn" style={{ background: 'transparent', color: '#3f3f46' }}>
+        <div className="flex-1" />
+        <button onClick={onLogout} title="Logout"
+          className="flex items-center justify-center hover:text-rose-400 hover:bg-zinc-900 transition-all"
+          style={{ width: 48, height: 48, borderRadius: 12, border: 'none', cursor: 'pointer', background: 'transparent', color: '#3f3f46' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/>
           </svg>
         </button>
       </aside>
-
-      {/* Main */}
-      <main className="md-main" style={{ flex: 1, paddingBottom: 96, minHeight: '100vh', background: '#000' }}>
+ 
+      {/* Main content — no left margin on mobile, 80px on md+ */}
+      <main className="flex-1 md:ml-[80px] pb-24 md:pb-0 min-h-screen bg-black">
         {/* Top bar */}
-        <div style={{ position: 'sticky', top: 0, zIndex: 30, background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #18181b', padding: '16px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="sticky top-0 z-30 flex items-center justify-between"
+          style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #18181b', padding: '16px 20px' }}>
           <div>
             <h2 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{tabLabel}</h2>
             {tab === 'orders' && (
@@ -291,38 +286,42 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
             )}
             {vendor && tab !== 'orders' && <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{vendor.name}</p>}
           </div>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div className="flex items-center gap-3">
             {tab === 'orders' && activeOrders.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <div className="flex items-center gap-1.5">
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
                 <span style={{ fontSize: 12, color: '#52525b', fontFamily: "'DM Mono', monospace" }}>Live</span>
               </div>
             )}
-            <button onClick={onLogout} className="md-logout-mobile"
+            {/* Logout only visible on mobile */}
+            <button onClick={onLogout} className="md:hidden"
               style={{ fontSize: 12, color: '#52525b', border: '1px solid #27272a', padding: '6px 12px', borderRadius: 8, background: 'transparent', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
               Logout
             </button>
           </div>
         </div>
-
-        <div style={{ padding: '16px' }}>
+ 
+        <div style={{ padding: 16 }}>
           {tab === 'orders' && <OrdersTab activeOrders={activeOrders} pastOrders={pastOrders} todayOrders={todayOrders} todayRevenue={todayRevenue} loading={ordersLoading} newOrderIds={newOrderIds} onUpdateStatus={updateStatus} />}
           {tab === 'menu'     && <MenuTab token={token} toast={toast} />}
           {tab === 'qr'       && <QRTab vendorId={vendor?.id} vendorName={vendor?.name} />}
           {tab === 'settings' && <SettingsTab vendor={vendor} token={token} toast={toast} onLogout={onLogout} />}
         </div>
       </main>
-
-      {/* Mobile bottom nav */}
-      <nav className="md-bottomnav" style={{ position: 'fixed', bottom: 0, left: 0, right: 0, zIndex: 40, background: 'rgba(10,10,10,0.97)', backdropFilter: 'blur(20px)', borderTop: '1px solid #18181b', display: 'flex' }}>
+ 
+      {/* Mobile bottom nav — visible on mobile only */}
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex"
+        style={{ background: 'rgba(10,10,10,0.97)', backdropFilter: 'blur(20px)', borderTop: '1px solid #18181b' }}>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)}
-            style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '12px 0', gap: 2, background: 'none', border: 'none', cursor: 'pointer', color: tab === t.key ? '#ff6b00' : '#52525b', position: 'relative', transition: 'color 0.2s' }}>
-            {tab === t.key && <span style={{ position: 'absolute', top: 0, left: '25%', right: '25%', height: 2, background: '#ff6b00', borderRadius: '0 0 2px 2px' }} />}
+            className="flex-1 flex flex-col items-center justify-center relative transition-colors duration-200"
+            style={{ padding: '12px 0', gap: 2, background: 'none', border: 'none', cursor: 'pointer', color: tab === t.key ? '#ff6b00' : '#52525b' }}>
+            {tab === t.key && <span className="absolute top-0 left-1/4 right-1/4 rounded-b" style={{ height: 2, background: '#ff6b00' }} />}
             {t.icon}
             <span style={{ fontSize: 9, fontWeight: 600, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{t.label}</span>
             {t.badge !== undefined && (
-              <span style={{ position: 'absolute', top: 8, right: '25%', width: 14, height: 14, background: '#ff6b00', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span className="absolute top-2 right-1/4 flex items-center justify-center"
+                style={{ width: 14, height: 14, background: '#ff6b00', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: '50%' }}>
                 {t.badge > 9 ? '9+' : t.badge}
               </span>
             )}
@@ -331,7 +330,6 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
       </nav>
     </div>
   )
-}
 
 // ─── Orders Tab ────────────────────────────────────────────────────────────────
 

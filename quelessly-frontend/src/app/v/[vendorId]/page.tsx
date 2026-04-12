@@ -107,14 +107,31 @@ export default function MenuPage() {
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
-        @keyframes slideUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         .menu-card { background:#fff; border:1px solid rgba(26,23,20,0.07); border-radius:16px; overflow:hidden; display:flex; flex-direction:column; transition:all 0.2s; }
         .menu-card:hover { border-color:rgba(255,107,0,0.2); box-shadow:0 4px 16px rgba(26,23,20,0.08); }
         .menu-card:active { transform:scale(0.98); }
-        .cat-pill { padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; border:1.5px solid; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; fontFamily:"'DM Sans',sans-serif"; }
+        .cat-pill { padding:6px 16px; border-radius:20px; font-size:13px; font-weight:600; white-space:nowrap; border:1.5px solid; cursor:pointer; transition:all 0.2s; display:flex; align-items:center; gap:6px; }
         .cat-pill:active { transform:scale(0.95); }
         .qty-btn { width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; line-height:1; cursor:pointer; background:none; border:none; color:#ff6b00; transition:transform 0.15s; }
         .qty-btn:active { transform:scale(0.85); }
+
+        /* ── RESPONSIVE GRID ── */
+        .menu-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+          padding: 4px 16px 0;
+        }
+        @media (min-width: 640px)  { .menu-grid { grid-template-columns: repeat(3, 1fr); } }
+        @media (min-width: 900px)  { .menu-grid { grid-template-columns: repeat(4, 1fr); } }
+        @media (min-width: 1200px) { .menu-grid { grid-template-columns: repeat(5, 1fr); } }
+
+        /* ── CAP IMAGE HEIGHT ON DESKTOP ── */
+        .card-image { aspect-ratio: 1; background: #F2EDE4; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
+        @media (min-width: 640px) { .card-image { aspect-ratio: unset; height: 160px; } }
+
+        /* ── CONSTRAIN PAGE WIDTH ON DESKTOP ── */
+        .menu-inner { max-width: 1280px; margin: 0 auto; }
       `}</style>
 
       {/* Fixed header */}
@@ -134,61 +151,70 @@ export default function MenuPage() {
 
       <div style={{ height: 80 }} />
 
-      {/* Search */}
-      <div style={{ padding: '0 16px 12px' }}>
-        <div style={{ position: 'relative' }}>
-          <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8a7f72', fontSize: 16, pointerEvents: 'none' }}>⌕</span>
-          <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search menu…"
-            style={{ width: '100%', background: '#fff', border: '1.5px solid rgba(26,23,20,0.1)', borderRadius: 40, padding: '12px 20px 12px 42px', fontSize: 14, color: '#1a1714', outline: 'none', fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
-            onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.4)'}
-            onBlur={e => e.target.style.borderColor = 'rgba(26,23,20,0.1)'} />
-        </div>
-      </div>
-
-      {/* Category pills */}
-      <div className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 16px 12px', overflowX: 'auto' }}>
-        {categories.map(cat => (
-          <button key={cat} onClick={() => setActiveCategory(cat)} className="cat-pill"
-            style={{
-              background: activeCategory === cat ? '#ff6b00' : 'transparent',
-              color: activeCategory === cat ? '#fff' : '#8a7f72',
-              borderColor: activeCategory === cat ? 'transparent' : 'rgba(26,23,20,0.12)',
-              fontFamily: "'DM Sans', sans-serif",
-            }}>
-            {cat !== 'All' && <span style={{ fontSize: 14 }}>{CAT_ICON[cat] ?? '🍴'}</span>}
-            {cat}
-          </button>
-        ))}
-      </div>
-
-      {/* Active order banner — dashed receipt style */}
-      {activeOrder && (
+      <div className="menu-inner">
+        {/* Search */}
         <div style={{ padding: '0 16px 12px' }}>
-          <button onClick={() => router.push(`/order/${activeOrder.orderId}`)}
-            style={{ width: '100%', background: 'rgba(255,107,0,0.05)', border: '2px dashed rgba(255,107,0,0.3)', borderRadius: 14, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.15s' }}
-            onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,107,0,0.08)'}
-            onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,107,0,0.05)'}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
-              <p style={{ color: '#ff6b00', fontWeight: 700, fontSize: 14, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Active order · ₹{activeOrder.total}</p>
-            </div>
-            <span style={{ color: '#ff6b00', fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Track →</span>
-          </button>
+          <div style={{ position: 'relative' }}>
+            <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8a7f72', fontSize: 16, pointerEvents: 'none' }}>⌕</span>
+            <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search menu…"
+              style={{ width: '100%', background: '#fff', border: '1.5px solid rgba(26,23,20,0.1)', borderRadius: 40, padding: '12px 20px 12px 42px', fontSize: 14, color: '#1a1714', outline: 'none', fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
+              onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.4)'}
+              onBlur={e => e.target.style.borderColor = 'rgba(26,23,20,0.1)'} />
+          </div>
         </div>
-      )}
 
-      {/* Menu grid */}
-      <div style={{ padding: '4px 16px 0', display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        {loading
-          ? Array.from({ length: 6 }).map((_, i) => <SkeletonMenuCard key={i} />)
-          : filtered.length === 0
-          ? <div style={{ gridColumn: 'span 2', textAlign: 'center', padding: '80px 0' }}><p style={{ color: '#8a7f72', fontFamily: "'DM Sans', sans-serif" }}>Nothing found</p></div>
-          : filtered.map(item => (
-            <MenuCard key={item.id} item={item} qty={getQty(item.id)}
-              onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item.id)}
-              showCategory={activeCategory === 'All'} />
-          ))
-        }
+        {/* Category pills */}
+        <div className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 16px 12px', overflowX: 'auto' }}>
+          {categories.map(cat => (
+            <button key={cat} onClick={() => setActiveCategory(cat)} className="cat-pill"
+              style={{
+                background: activeCategory === cat ? '#ff6b00' : 'transparent',
+                color: activeCategory === cat ? '#fff' : '#8a7f72',
+                borderColor: activeCategory === cat ? 'transparent' : 'rgba(26,23,20,0.12)',
+                fontFamily: "'DM Sans', sans-serif",
+              }}>
+              {cat !== 'All' && <span style={{ fontSize: 14 }}>{CAT_ICON[cat] ?? '🍴'}</span>}
+              {cat}
+            </button>
+          ))}
+        </div>
+
+        {/* Active order banner */}
+        {activeOrder && (
+          <div style={{ padding: '0 16px 12px' }}>
+            <button onClick={() => router.push(`/order/${activeOrder.orderId}`)}
+              style={{ width: '100%', background: 'rgba(255,107,0,0.05)', border: '2px dashed rgba(255,107,0,0.3)', borderRadius: 14, padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', cursor: 'pointer', transition: 'all 0.15s' }}
+              onMouseEnter={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,107,0,0.08)'}
+              onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,107,0,0.05)'}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
+                <p style={{ color: '#ff6b00', fontWeight: 700, fontSize: 14, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Active order · ₹{activeOrder.total}</p>
+              </div>
+              <span style={{ color: '#ff6b00', fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Track →</span>
+            </button>
+          </div>
+        )}
+
+        {/* Menu grid — responsive */}
+        <div className="menu-grid">
+          {loading
+            ? Array.from({ length: 6 }).map((_, i) => <SkeletonMenuCard key={i} />)
+            : filtered.length === 0
+            ? <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '80px 0' }}><p style={{ color: '#8a7f72', fontFamily: "'DM Sans', sans-serif" }}>Nothing found</p></div>
+            : filtered.map(item => (
+              <MenuCard key={item.id} item={item} qty={getQty(item.id)}
+                onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item.id)}
+                showCategory={activeCategory === 'All'} />
+            ))
+          }
+        </div>
+
+        {/* Powered by */}
+        <div style={{ textAlign: 'center', padding: '32px 16px' }}>
+          <a href="https://quelessly.com" style={{ fontSize: 12, color: '#c9c2b8', textDecoration: 'none', fontFamily: "'DM Mono', monospace" }}>
+            powered by quelessly.
+          </a>
+        </div>
       </div>
 
       {/* Cart pill */}
@@ -200,13 +226,6 @@ export default function MenuPage() {
           <span style={{ fontWeight: 800, fontFamily: "'DM Mono', monospace" }}>₹{totalAmount}</span>
         </button>
       )}
-
-      {/* Powered by */}
-      <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-        <a href="https://quelessly.com" style={{ fontSize: 12, color: '#c9c2b8', textDecoration: 'none', fontFamily: "'DM Mono', monospace" }}>
-          powered by quelessly.
-        </a>
-      </div>
     </div>
   )
 }
@@ -220,10 +239,10 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
 
   return (
     <div className="menu-card">
-      {/* Image area */}
-      <div style={{ aspectRatio: '1', background: '#F2EDE4', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+      {/* Image — capped height on desktop via .card-image class */}
+      <div className="card-image">
         {item.image_url ? (
-          <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+          <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6, opacity: 0.25 }}>
             <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#8a7f72" strokeWidth="1.5">
