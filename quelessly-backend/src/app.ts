@@ -14,6 +14,7 @@ app.use(cors({
     'https://quelessly.com',
     'https://www.quelessly.com',
     'https://que-claw.vercel.app',
+    /\.vercel\.app$/,
   ],
   credentials: true,
 }))
