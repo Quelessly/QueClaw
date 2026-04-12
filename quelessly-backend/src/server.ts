@@ -1,3 +1,4 @@
+import './instrument'  // ✅ must be first line
 import http from 'http'
 import app from './app'
 import { env } from './config/env'

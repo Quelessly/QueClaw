@@ -12,6 +12,7 @@ export const env = {
   FRONTEND_URL: process.env.FRONTEND_URL!,
   ADMIN_SECRET: process.env.ADMIN_SECRET!,
   RESEND_API_KEY: process.env.RESEND_API_KEY!,
+  SENTRY_DSN: process.env.SENTRY_DSN, // optional — no ! so server starts without it
 }
 
 const required = [
