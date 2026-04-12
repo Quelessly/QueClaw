@@ -26,5 +26,6 @@ app.use('/api/v1/payments', paymentRoutes)
 app.use('/api/v1/admin', adminRoutes)
 
 app.get('/health', (_, res) => res.json({ status: 'ok' }))
+app.get('/api/v1/health', (req, res) => res.json({ status: 'ok' }))
 
 export default app
