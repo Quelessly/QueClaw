@@ -6,10 +6,14 @@ import menuRoutes from './routes/menu.routes'
 import orderRoutes from './routes/order.routes'
 import paymentRoutes from './routes/payment.routes'
 import adminRoutes from './routes/admin.routes'
+import helmet from 'helmet'
 
 const app = express()
 
 app.set('trust proxy', 1) // ✅ Trust Railway's proxy to get real client IPs
+
+
+app.use(helmet())
 
 app.use(cors({
   origin: [
