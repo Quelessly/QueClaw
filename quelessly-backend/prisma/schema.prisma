@@ -121,6 +121,17 @@ model VendorInvite {
   @@map("vendor_invites")
 }
 
+model PasswordResetOtp {
+  id         String   @id @default(uuid())
+  email      String   @unique
+  otp        String
+  expires_at DateTime
+  used       Boolean  @default(false)
+  created_at DateTime @default(now())
+
+  @@map("password_reset_otps")
+}
+
 enum OrderStatus {
   pending
   paid
