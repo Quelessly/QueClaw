@@ -54,6 +54,7 @@ model Order {
 
   @@index([vendor_id])
   @@index([status])
+  @@index([vendor_id, created_at])
   @@map("orders")
 }
 
@@ -105,7 +106,6 @@ model VendorSettlement {
   @@unique([vendor_id, date])
   @@map("vendor_settlements")
 }
-
 
 model VendorInvite {
   id         String   @id @default(uuid())
