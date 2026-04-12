@@ -150,106 +150,110 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
   const labelStyle: React.CSSProperties = { display: 'block', fontSize: 10, fontWeight: 600, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8, fontFamily: "'DM Mono', monospace" }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '0 20px', fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#000', fontFamily: "'DM Sans', sans-serif", position: 'relative' }}>
       <style>{FONTS}</style>
-      <div style={{ width: '100%', maxWidth: 360 }}>
-        {/* Back to home */}
-        <a href="/" style={{ display: 'inline-flex', alignItems: 'center', gap: 6, color: '#52525b', fontSize: 13, textDecoration: 'none', marginBottom: 32, fontFamily: "'DM Sans', sans-serif" }}
-          onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
-          onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
-          ← Back to home
-        </a>
 
-        <div style={{ textAlign: 'center', marginBottom: 40 }}>
-          <div style={{ width: 64, height: 64, background: '#ff6b00', borderRadius: 16, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff' }}>Q</span>
+      {/* ✅ Fixed top-left back button */}
+      <a href="/" style={{ position: 'fixed', top: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 6, color: '#a1a1aa', fontSize: 13, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif", background: '#18181b', border: '1px solid #27272a', borderRadius: 10, padding: '8px 14px', zIndex: 50 }}
+        onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#fff'; (e.currentTarget as HTMLElement).style.borderColor = '#52525b' }}
+        onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#a1a1aa'; (e.currentTarget as HTMLElement).style.borderColor = '#27272a' }}>
+        ← Back to home
+      </a>
+
+      {/* Centered login card */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '100vh', padding: '80px 20px 20px' }}>
+        <div style={{ width: '100%', maxWidth: 360 }}>
+          <div style={{ textAlign: 'center', marginBottom: 40 }}>
+            <div style={{ width: 64, height: 64, background: '#ff6b00', borderRadius: 16, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff' }}>Q</span>
+            </div>
+            <h1 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff', letterSpacing: '-1px', margin: 0 }}>quelessly.</h1>
+            <p style={{ color: '#52525b', fontSize: 13, marginTop: 4 }}>
+              {mode === 'login' ? 'Vendor Command Center' : mode === 'forgot' ? 'Reset your password' : 'Enter your OTP'}
+            </p>
           </div>
-          <h1 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff', letterSpacing: '-1px', margin: 0 }}>quelessly.</h1>
-          <p style={{ color: '#52525b', fontSize: 13, marginTop: 4 }}>
-            {mode === 'login' ? 'Vendor Command Center' : mode === 'forgot' ? 'Reset your password' : 'Enter your OTP'}
-          </p>
-        </div>
 
-        <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 20, padding: 24 }}>
+          <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 20, padding: 24 }}>
 
-          {/* LOGIN FORM */}
-          {mode === 'login' && (
-            <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Email</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" placeholder="you@canteen.com" style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
-                  onBlur={e => e.target.style.borderColor = '#27272a'} />
-              </div>
-              <div>
-                <label style={labelStyle}>Password</label>
-                <input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" placeholder="••••••••" style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
-                  onBlur={e => e.target.style.borderColor = '#27272a'} />
-              </div>
-              <button type="button" onClick={() => setMode('forgot')}
-                style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', textAlign: 'right', padding: 0, fontFamily: "'DM Sans', sans-serif" }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#ff6b00'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
-                Forgot password?
-              </button>
-              <button type="submit" disabled={loading}
-                style={{ marginTop: 4, background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 0', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
-                {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Signing in…</> : 'Sign in →'}
-              </button>
-            </form>
-          )}
+            {/* LOGIN FORM */}
+            {mode === 'login' && (
+              <form onSubmit={handleLogin} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>Email</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required autoComplete="email" placeholder="you@canteen.com" style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                    onBlur={e => e.target.style.borderColor = '#27272a'} />
+                </div>
+                <div>
+                  <label style={labelStyle}>Password</label>
+                  <input type="password" value={password} onChange={e => setPassword(e.target.value)} required autoComplete="current-password" placeholder="••••••••" style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                    onBlur={e => e.target.style.borderColor = '#27272a'} />
+                </div>
+                <button type="button" onClick={() => setMode('forgot')}
+                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', textAlign: 'right', padding: 0, fontFamily: "'DM Sans', sans-serif" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#ff6b00'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
+                  Forgot password?
+                </button>
+                <button type="submit" disabled={loading}
+                  style={{ marginTop: 4, background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 0', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
+                  {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Signing in…</> : 'Sign in →'}
+                </button>
+              </form>
+            )}
 
-          {/* FORGOT PASSWORD FORM */}
-          {mode === 'forgot' && (
-            <form onSubmit={handleForgot} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>Your email</label>
-                <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@canteen.com" style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
-                  onBlur={e => e.target.style.borderColor = '#27272a'} />
-              </div>
-              <p style={{ color: '#52525b', fontSize: 12, margin: 0 }}>We'll send a 6-digit OTP to your email.</p>
-              <button type="submit" disabled={loading}
-                style={{ background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 0', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
-                {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Sending…</> : 'Send OTP →'}
-              </button>
-              <button type="button" onClick={() => setMode('login')}
-                style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif' " }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
-                ← Back to login
-              </button>
-            </form>
-          )}
+            {/* FORGOT PASSWORD FORM */}
+            {mode === 'forgot' && (
+              <form onSubmit={handleForgot} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>Your email</label>
+                  <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@canteen.com" style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                    onBlur={e => e.target.style.borderColor = '#27272a'} />
+                </div>
+                <p style={{ color: '#52525b', fontSize: 12, margin: 0 }}>We'll send a 6-digit OTP to your email.</p>
+                <button type="submit" disabled={loading}
+                  style={{ background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 0', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
+                  {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Sending…</> : 'Send OTP →'}
+                </button>
+                <button type="button" onClick={() => setMode('login')}
+                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
+                  ← Back to login
+                </button>
+              </form>
+            )}
 
-          {/* RESET PASSWORD FORM */}
-          {mode === 'reset' && (
-            <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-              <div>
-                <label style={labelStyle}>OTP</label>
-                <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required placeholder="6-digit code" maxLength={6} style={{ ...inputStyle, letterSpacing: 8, textAlign: 'center', fontSize: 20 }}
-                  onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
-                  onBlur={e => e.target.style.borderColor = '#27272a'} />
-              </div>
-              <div>
-                <label style={labelStyle}>New password</label>
-                <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required placeholder="Min 8 characters" style={inputStyle}
-                  onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
-                  onBlur={e => e.target.style.borderColor = '#27272a'} />
-              </div>
-              <button type="submit" disabled={loading}
-                style={{ background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 0', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
-                {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Resetting…</> : 'Reset password →'}
-              </button>
-              <button type="button" onClick={() => setMode('forgot')}
-                style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
-                ← Resend OTP
-              </button>
-            </form>
-          )}
+            {/* RESET PASSWORD FORM */}
+            {mode === 'reset' && (
+              <form onSubmit={handleReset} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+                <div>
+                  <label style={labelStyle}>OTP</label>
+                  <input type="text" value={otp} onChange={e => setOtp(e.target.value)} required placeholder="6-digit code" maxLength={6} style={{ ...inputStyle, letterSpacing: 8, textAlign: 'center', fontSize: 20 }}
+                    onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                    onBlur={e => e.target.style.borderColor = '#27272a'} />
+                </div>
+                <div>
+                  <label style={labelStyle}>New password</label>
+                  <input type="password" value={newPassword} onChange={e => setNewPassword(e.target.value)} required placeholder="Min 8 characters" style={inputStyle}
+                    onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+                    onBlur={e => e.target.style.borderColor = '#27272a'} />
+                </div>
+                <button type="submit" disabled={loading}
+                  style={{ background: '#ff6b00', color: '#fff', border: 'none', borderRadius: 14, padding: '14px 0', fontWeight: 700, fontSize: 15, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, opacity: loading ? 0.6 : 1 }}>
+                  {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Resetting…</> : 'Reset password →'}
+                </button>
+                <button type="button" onClick={() => setMode('forgot')}
+                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+                  onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
+                  onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
+                  ← Resend OTP
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </div>
       <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
