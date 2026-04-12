@@ -1,3 +1,5 @@
+'use client'
+
 import Footer from '@/components/Footer'
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
@@ -8,8 +10,6 @@ export default function PrivacyPage() {
       <style>{`${FONTS} * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '64px 20px' }}>
-
-        {/* Header */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ width: 44, height: 44, background: '#ff6b00', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
             <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff' }}>Q</span>
@@ -18,33 +18,29 @@ export default function PrivacyPage() {
           <p style={{ color: '#8a7f72', fontSize: 13, fontFamily: "'DM Mono', monospace" }}>Last updated: April 2026</p>
         </div>
 
-        {/* Sections */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
-
           <Section title="1. Who we are">
-            <p>Quelessly is a proprietorship operated from Pune, Maharashtra, India. We provide a QR-based food ordering platform for college canteens. You can reach us at{' '}
-              <Link href="mailto:support@quelessly.com">support@quelessly.com</Link>.
-            </p>
+            <p>Quelessly is a proprietorship operated from Pune, Maharashtra, India. We provide a QR-based food ordering platform for college canteens. You can reach us at <OLink href="mailto:support@quelessly.com">support@quelessly.com</OLink>.</p>
           </Section>
 
           <Section title="2. Information we collect">
             <p>When you use Quelessly, we may collect:</p>
-            <ul style={{ marginTop: 12, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <li style={{ color: '#8a7f72', fontSize: 14 }}>Order details (items ordered, quantity, total amount)</li>
-              <li style={{ color: '#8a7f72', fontSize: 14 }}>Payment transaction data (processed securely via Razorpay — we do not store card details)</li>
-              <li style={{ color: '#8a7f72', fontSize: 14 }}>Device and browser information for analytics</li>
-            </ul>
-            <p style={{ marginTop: 12 }}>We do not require you to create an account or provide personal information to browse menus or place orders.</p>
+            <BulletList items={[
+              'Order details (items ordered, quantity, total amount)',
+              'Payment transaction data (processed securely via Razorpay — we do not store card details)',
+              'Device and browser information for analytics',
+            ]} />
+            <p>We do not require you to create an account or provide personal information to browse menus or place orders.</p>
           </Section>
 
           <Section title="3. How we use your information">
             <p>We use collected information to:</p>
-            <ul style={{ marginTop: 12, paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
-              <li style={{ color: '#8a7f72', fontSize: 14 }}>Process and fulfil your food orders</li>
-              <li style={{ color: '#8a7f72', fontSize: 14 }}>Display your order status in real time</li>
-              <li style={{ color: '#8a7f72', fontSize: 14 }}>Improve platform performance and reliability</li>
-              <li style={{ color: '#8a7f72', fontSize: 14 }}>Resolve disputes and respond to support queries</li>
-            </ul>
+            <BulletList items={[
+              'Process and fulfil your food orders',
+              'Display your order status in real time',
+              'Improve platform performance and reliability',
+              'Resolve disputes and respond to support queries',
+            ]} />
           </Section>
 
           <Section title="4. Payment data">
@@ -60,16 +56,12 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="7. Your rights">
-            <p>You may request deletion of your order data by emailing{' '}
-              <Link href="mailto:support@quelessly.com">support@quelessly.com</Link>.
-              {' '}We will process requests within 7 business days.
-            </p>
+            <p>You may request deletion of your order data by emailing <OLink href="mailto:support@quelessly.com">support@quelessly.com</OLink>. We will process requests within 7 business days.</p>
           </Section>
 
           <Section title="8. Changes to this policy">
             <p>We may update this policy from time to time. Continued use of the platform after changes constitutes acceptance of the updated policy.</p>
           </Section>
-
         </div>
       </div>
       <Footer />
@@ -81,12 +73,20 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   return (
     <section>
       <h2 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#023341', letterSpacing: '-0.3px', marginBottom: 12 }}>{title}</h2>
-      <div style={{ color: '#3d3830', fontSize: 15, lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: 8 }}>{children}</div>
+      <div style={{ color: '#3d3830', fontSize: 15, lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: 10 }}>{children}</div>
     </section>
   )
 }
 
-function Link({ href, children }: { href: string; children: React.ReactNode }) {
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
+      {items.map(item => <li key={item} style={{ color: '#8a7f72', fontSize: 14, lineHeight: 1.7 }}>{item}</li>)}
+    </ul>
+  )
+}
+
+function OLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} style={{ color: '#ff6b00', textDecoration: 'none', fontWeight: 500 }}
       onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}

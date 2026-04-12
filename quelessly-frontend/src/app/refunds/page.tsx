@@ -1,3 +1,5 @@
+'use client'
+
 import Footer from '@/components/Footer'
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
@@ -8,8 +10,6 @@ export default function RefundsPage() {
       <style>{`${FONTS} * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '64px 20px' }}>
-
-        {/* Header */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ width: 44, height: 44, background: '#ff6b00', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
             <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff' }}>Q</span>
@@ -19,7 +19,6 @@ export default function RefundsPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
-
           <Section title="Our role">
             <p>Quelessly is a technology platform. We do not prepare or serve food. All food orders are fulfilled by independent vendors (canteen operators). Refund eligibility depends on the nature of the issue.</p>
           </Section>
@@ -33,7 +32,7 @@ export default function RefundsPage() {
                 ['Technical error during payment', 'Full refund within 5–7 business days upon verification.'],
               ].map(([bold, rest]) => (
                 <li key={bold} style={{ color: '#8a7f72', fontSize: 14, lineHeight: 1.7 }}>
-                  <span style={{ color: '#1a1714', fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>{bold}:</span>{' '}{rest}
+                  <span style={{ color: '#1a1714', fontWeight: 600 }}>{bold}:</span>{' '}{rest}
                 </li>
               ))}
             </ul>
@@ -57,25 +56,18 @@ export default function RefundsPage() {
           </Section>
 
           <Section title="Refund timeline">
-            <p>Approved refunds are processed within{' '}
-              <strong style={{ color: '#1a1714', fontWeight: 700 }}>5–7 business days</strong>{' '}
-              to the original payment method (UPI, card, or net banking). Actual credit time may vary depending on your bank.
-            </p>
+            <p>Approved refunds are processed within <strong style={{ color: '#1a1714', fontWeight: 700 }}>5–7 business days</strong> to the original payment method (UPI, card, or net banking). Actual credit time may vary depending on your bank.</p>
           </Section>
 
           <Section title="How to request a refund">
-            <p>Email us at{' '}
-              <Link href="mailto:support@quelessly.com">support@quelessly.com</Link>{' '}
-              with:
-            </p>
-            <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 8 }}>
+            <p>Email us at <OLink href="mailto:support@quelessly.com">support@quelessly.com</OLink> with:</p>
+            <ul style={{ paddingLeft: 20, display: 'flex', flexDirection: 'column', gap: 6 }}>
               {['Your Order ID', 'Date and time of order', 'Reason for refund request', 'Screenshot of payment (if applicable)'].map(item => (
                 <li key={item} style={{ color: '#8a7f72', fontSize: 14 }}>{item}</li>
               ))}
             </ul>
             <p>We will respond within 48 business hours.</p>
           </Section>
-
         </div>
       </div>
       <Footer />
@@ -92,7 +84,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function Link({ href, children }: { href: string; children: React.ReactNode }) {
+function OLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} style={{ color: '#ff6b00', textDecoration: 'none', fontWeight: 500 }}
       onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}

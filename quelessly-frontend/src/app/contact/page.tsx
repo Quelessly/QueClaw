@@ -1,3 +1,5 @@
+'use client'
+
 import Footer from '@/components/Footer'
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
@@ -8,8 +10,6 @@ export default function ContactPage() {
       <style>{`${FONTS} * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '64px 20px' }}>
-
-        {/* Header */}
         <div style={{ marginBottom: 40 }}>
           <div style={{ width: 44, height: 44, background: '#ff6b00', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
             <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff' }}>Q</span>
@@ -19,33 +19,12 @@ export default function ContactPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-
-          {/* Main contact card */}
           <div style={{ background: '#fff', border: '1px solid rgba(26,23,20,0.07)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 20 }}>
             {[
-              {
-                label: 'Email',
-                content: (
-                  <a href="mailto:support@quelessly.com"
-                    style={{ color: '#ff6b00', fontSize: 17, fontFamily: "'DM Mono', monospace", textDecoration: 'none', fontWeight: 500 }}
-                    onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}
-                    onMouseLeave={e => (e.currentTarget as HTMLElement).style.textDecoration = 'none'}>
-                    support@quelessly.com
-                  </a>
-                ),
-              },
-              {
-                label: 'Response Time',
-                content: <p style={{ color: '#3d3830', fontSize: 15 }}>We typically respond within 24–48 business hours.</p>,
-              },
-              {
-                label: 'Business Hours',
-                content: <p style={{ color: '#3d3830', fontSize: 15 }}>Monday – Saturday, 9:00 AM – 6:00 PM IST</p>,
-              },
-              {
-                label: 'Location',
-                content: <p style={{ color: '#3d3830', fontSize: 15 }}>Pune, Maharashtra, India</p>,
-              },
+              { label: 'Email', content: <OLink href="mailto:support@quelessly.com" large>support@quelessly.com</OLink> },
+              { label: 'Response Time', content: <p style={{ color: '#3d3830', fontSize: 15 }}>We typically respond within 24–48 business hours.</p> },
+              { label: 'Business Hours', content: <p style={{ color: '#3d3830', fontSize: 15 }}>Monday – Saturday, 9:00 AM – 6:00 PM IST</p> },
+              { label: 'Location', content: <p style={{ color: '#3d3830', fontSize: 15 }}>Pune, Maharashtra, India</p> },
             ].map(({ label, content }, i, arr) => (
               <div key={label}>
                 <p style={{ fontSize: 10, fontWeight: 600, color: '#8a7f72', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 6, fontFamily: "'DM Mono', monospace" }}>{label}</p>
@@ -55,16 +34,11 @@ export default function ContactPage() {
             ))}
           </div>
 
-          {/* Order issues card */}
           <div style={{ background: '#fff', border: '1px solid rgba(26,23,20,0.07)', borderRadius: 20, padding: 24 }}>
             <p style={{ fontSize: 10, fontWeight: 600, color: '#8a7f72', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 12, fontFamily: "'DM Mono', monospace" }}>For order issues</p>
             <p style={{ color: '#3d3830', fontSize: 14, lineHeight: 1.85 }}>
               If you have an issue with a specific order — wrong items, quality concerns, or missing food — please contact the vendor directly at the canteen. Quelessly is a technology platform and does not handle food preparation or delivery. For payment-related issues, write to us at{' '}
-              <a href="mailto:support@quelessly.com" style={{ color: '#ff6b00', textDecoration: 'none', fontWeight: 500 }}
-                onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}
-                onMouseLeave={e => (e.currentTarget as HTMLElement).style.textDecoration = 'none'}>
-                support@quelessly.com
-              </a>{' '}
+              <OLink href="mailto:support@quelessly.com">support@quelessly.com</OLink>{' '}
               with your order ID.
             </p>
           </div>
@@ -72,5 +46,16 @@ export default function ContactPage() {
       </div>
       <Footer />
     </div>
+  )
+}
+
+function OLink({ href, children, large }: { href: string; children: React.ReactNode; large?: boolean }) {
+  return (
+    <a href={href}
+      style={{ color: '#ff6b00', textDecoration: 'none', fontWeight: 500, fontSize: large ? 17 : undefined, fontFamily: large ? "'DM Mono', monospace" : undefined }}
+      onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}
+      onMouseLeave={e => (e.currentTarget as HTMLElement).style.textDecoration = 'none'}>
+      {children}
+    </a>
   )
 }

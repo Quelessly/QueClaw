@@ -1,3 +1,5 @@
+'use client'
+
 import Footer from '@/components/Footer'
 
 const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
@@ -8,8 +10,6 @@ export default function TermsPage() {
       <style>{`${FONTS} * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '64px 20px' }}>
-
-        {/* Header */}
         <div style={{ marginBottom: 48 }}>
           <div style={{ width: 44, height: 44, background: '#ff6b00', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
             <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff' }}>Q</span>
@@ -19,7 +19,6 @@ export default function TermsPage() {
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
-
           <Section title="1. Platform nature">
             <p>Quelessly is a technology platform that facilitates food ordering between students and canteen vendors. Quelessly is not a food provider, restaurant, or delivery service. We do not prepare, cook, handle, or deliver any food items.</p>
           </Section>
@@ -49,11 +48,8 @@ export default function TermsPage() {
           </Section>
 
           <Section title="8. Contact">
-            <p>For any queries regarding these terms, contact us at{' '}
-              <Link href="mailto:support@quelessly.com">support@quelessly.com</Link>.
-            </p>
+            <p>For any queries regarding these terms, contact us at <OLink href="mailto:support@quelessly.com">support@quelessly.com</OLink>.</p>
           </Section>
-
         </div>
       </div>
       <Footer />
@@ -70,7 +66,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
   )
 }
 
-function Link({ href, children }: { href: string; children: React.ReactNode }) {
+function OLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <a href={href} style={{ color: '#ff6b00', textDecoration: 'none', fontWeight: 500 }}
       onMouseEnter={e => (e.currentTarget as HTMLElement).style.textDecoration = 'underline'}
