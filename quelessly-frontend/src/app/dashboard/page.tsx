@@ -178,7 +178,14 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
     try {
       socket = getSocket()
       if (socket) {
-        if (vendor?.id) socket.emit('join_vendor', vendor.id)
+        if (vendor?.id) {
+          socket.emit('join_vendor', vendor.id)
+          // ✅ Rejoin room on every reconnect (handles Railway restarts, network drops)
+          socket.on('connect', () => {
+            socket!.emit('join_vendor', vendor.id)
+            })
+            }
+
         socket.on('new_order', (data: Order) => {
           if (!data?.id) return
           setOrders(prev => [data, ...prev])
