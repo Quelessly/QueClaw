@@ -9,6 +9,8 @@ import adminRoutes from './routes/admin.routes'
 
 const app = express()
 
+app.set('trust proxy', 1) // ✅ Trust Railway's proxy to get real client IPs
+
 app.use(cors({
   origin: [
     'http://localhost:3000',
