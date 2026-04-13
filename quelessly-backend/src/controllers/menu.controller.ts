@@ -7,6 +7,7 @@ export const getPublicMenu = async (req: AuthRequest, res: Response, next: NextF
   try {
     const vendorId = req.params.vendorId as string
     const data = await menuService.getPublicMenuWithVendor(vendorId)
+    res.setHeader('Cache-Control', 's-maxage=60, stale-while-revalidate=300')
     sendSuccess(res, data)
   } catch (err: any) {
     sendError(res, err.message)
