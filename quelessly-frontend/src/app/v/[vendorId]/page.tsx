@@ -33,8 +33,6 @@ const CAT_PILL: Record<string, string> = {
 
 const getPillStyle = (cat: string) => CAT_PILL[cat] ?? 'bg-stone-100 text-stone-500 border-stone-200'
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
-
 export default function MenuPage() {
   const { vendorId } = useParams()
   const router = useRouter()
@@ -59,9 +57,14 @@ export default function MenuPage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // ── Single API call — returns { items, vendor } ──
   useEffect(() => {
-    api.get(`/menu/public/${vendorId}`).then(res => { if (res.success) setItems(res.data) }).finally(() => setLoading(false))
-    api.get(`/auth/vendor/${vendorId}`).then(res => { if (res.success && res.data?.name) setVendorName(res.data.name.toLowerCase()) })
+    api.get(`/menu/public/${vendorId}`).then(res => {
+      if (res.success) {
+        setItems(res.data.items)
+        if (res.data.vendor?.name) setVendorName(res.data.vendor.name.toLowerCase())
+      }
+    }).finally(() => setLoading(false))
   }, [vendorId])
 
   useEffect(() => {
@@ -100,9 +103,8 @@ export default function MenuPage() {
   const goToCart = () => { localStorage.setItem('cart', JSON.stringify(cart)); localStorage.setItem('vendorId', vendorId as string); router.push('/cart') }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF7F2', paddingBottom: 144, fontFamily: "'DM Sans', sans-serif" }}>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', paddingBottom: 144, fontFamily: 'var(--font-dm-sans), sans-serif' }}>
       <style>{`
-        ${FONTS}
         * { box-sizing: border-box; }
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
@@ -114,35 +116,23 @@ export default function MenuPage() {
         .cat-pill:active { transform:scale(0.95); }
         .qty-btn { width:28px; height:28px; display:flex; align-items:center; justify-content:center; font-weight:800; font-size:16px; line-height:1; cursor:pointer; background:none; border:none; color:#ff6b00; transition:transform 0.15s; }
         .qty-btn:active { transform:scale(0.85); }
-
-        /* ── RESPONSIVE GRID ── */
-        .menu-grid {
-          display: grid;
-          grid-template-columns: repeat(2, 1fr);
-          gap: 12px;
-          padding: 4px 16px 0;
-        }
-        @media (min-width: 640px)  { .menu-grid { grid-template-columns: repeat(3, 1fr); } }
-        @media (min-width: 900px)  { .menu-grid { grid-template-columns: repeat(4, 1fr); } }
-        @media (min-width: 1200px) { .menu-grid { grid-template-columns: repeat(5, 1fr); } }
-
-        /* ── CAP IMAGE HEIGHT ON DESKTOP ── */
-        .card-image { aspect-ratio: 1; background: #F2EDE4; display: flex; align-items: center; justify-content: center; position: relative; overflow: hidden; }
-        @media (min-width: 640px) { .card-image { aspect-ratio: unset; height: 160px; } }
-
-        /* ── CONSTRAIN PAGE WIDTH ON DESKTOP ── */
-        .menu-inner { max-width: 1280px; margin: 0 auto; }
+        .menu-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; padding:4px 16px 0; }
+        @media (min-width:640px) { .menu-grid { grid-template-columns:repeat(3,1fr); } }
+        @media (min-width:900px) { .menu-grid { grid-template-columns:repeat(4,1fr); } }
+        @media (min-width:1200px) { .menu-grid { grid-template-columns:repeat(5,1fr); } }
+        .card-image { aspect-ratio:1; background:#F2EDE4; display:flex; align-items:center; justify-content:center; position:relative; overflow:hidden; }
+        @media (min-width:640px) { .card-image { aspect-ratio:unset; height:160px; } }
+        .menu-inner { max-width:1280px; margin:0 auto; }
       `}</style>
 
-      {/* Fixed header */}
       <div style={{ position: 'fixed', top: 0, left: 0, right: 0, zIndex: 50, transition: 'transform 0.3s', transform: headerHidden ? 'translateY(-100%)' : 'translateY(0)' }}>
         <div style={{ margin: '12px 16px 0', background: 'rgba(250,247,242,0.95)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderRadius: 40, padding: '12px 20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', border: '1px solid rgba(26,23,20,0.08)', boxShadow: '0 4px 20px rgba(26,23,20,0.06)' }}>
-          <a href="https://quelessly.com" style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, color: '#023341', fontSize: 16, textDecoration: 'none', letterSpacing: '-0.3px' }}>
+          <a href="https://quelessly.com" style={{ fontFamily: 'var(--font-fraunces), serif', fontStyle: 'italic', fontWeight: 700, color: '#023341', fontSize: 16, textDecoration: 'none', letterSpacing: '-0.3px' }}>
             {vendorName}
           </a>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
-            <span style={{ fontSize: 12, color: '#8a7f72', fontFamily: "'DM Mono', monospace" }}>
+            <span style={{ fontSize: 12, color: '#8a7f72', fontFamily: 'var(--font-dm-mono), monospace' }}>
               {loading ? '…' : `${items.filter(i => i.is_available).length} items`}
             </span>
           </div>
@@ -152,34 +142,26 @@ export default function MenuPage() {
       <div style={{ height: 80 }} />
 
       <div className="menu-inner">
-        {/* Search */}
         <div style={{ padding: '0 16px 12px' }}>
           <div style={{ position: 'relative' }}>
             <span style={{ position: 'absolute', left: 16, top: '50%', transform: 'translateY(-50%)', color: '#8a7f72', fontSize: 16, pointerEvents: 'none' }}>⌕</span>
             <input value={search} onChange={e => setSearch(e.target.value)} placeholder="Search menu…"
-              style={{ width: '100%', background: '#fff', border: '1.5px solid rgba(26,23,20,0.1)', borderRadius: 40, padding: '12px 20px 12px 42px', fontSize: 14, color: '#1a1714', outline: 'none', fontFamily: "'DM Sans', sans-serif", transition: 'border-color 0.2s' }}
+              style={{ width: '100%', background: '#fff', border: '1.5px solid rgba(26,23,20,0.1)', borderRadius: 40, padding: '12px 20px 12px 42px', fontSize: 14, color: '#1a1714', outline: 'none', fontFamily: 'var(--font-dm-sans), sans-serif', transition: 'border-color 0.2s' }}
               onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.4)'}
               onBlur={e => e.target.style.borderColor = 'rgba(26,23,20,0.1)'} />
           </div>
         </div>
 
-        {/* Category pills */}
         <div className="no-scrollbar" style={{ display: 'flex', gap: 8, padding: '4px 16px 12px', overflowX: 'auto' }}>
           {categories.map(cat => (
             <button key={cat} onClick={() => setActiveCategory(cat)} className="cat-pill"
-              style={{
-                background: activeCategory === cat ? '#ff6b00' : 'transparent',
-                color: activeCategory === cat ? '#fff' : '#8a7f72',
-                borderColor: activeCategory === cat ? 'transparent' : 'rgba(26,23,20,0.12)',
-                fontFamily: "'DM Sans', sans-serif",
-              }}>
+              style={{ background: activeCategory === cat ? '#ff6b00' : 'transparent', color: activeCategory === cat ? '#fff' : '#8a7f72', borderColor: activeCategory === cat ? 'transparent' : 'rgba(26,23,20,0.12)', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
               {cat !== 'All' && <span style={{ fontSize: 14 }}>{CAT_ICON[cat] ?? '🍴'}</span>}
               {cat}
             </button>
           ))}
         </div>
 
-        {/* Active order banner */}
         {activeOrder && (
           <div style={{ padding: '0 16px 12px' }}>
             <button onClick={() => router.push(`/order/${activeOrder.orderId}`)}
@@ -188,19 +170,18 @@ export default function MenuPage() {
               onMouseLeave={e => (e.currentTarget as HTMLElement).style.background = 'rgba(255,107,0,0.05)'}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                <p style={{ color: '#ff6b00', fontWeight: 700, fontSize: 14, margin: 0, fontFamily: "'DM Sans', sans-serif" }}>Active order · ₹{activeOrder.total}</p>
+                <p style={{ color: '#ff6b00', fontWeight: 700, fontSize: 14, margin: 0, fontFamily: 'var(--font-dm-sans), sans-serif' }}>Active order · ₹{activeOrder.total}</p>
               </div>
-              <span style={{ color: '#ff6b00', fontSize: 13, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Track →</span>
+              <span style={{ color: '#ff6b00', fontSize: 13, fontWeight: 700, fontFamily: 'var(--font-dm-sans), sans-serif' }}>Track →</span>
             </button>
           </div>
         )}
 
-        {/* Menu grid — responsive */}
         <div className="menu-grid">
           {loading
             ? Array.from({ length: 6 }).map((_, i) => <SkeletonMenuCard key={i} />)
             : filtered.length === 0
-            ? <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '80px 0' }}><p style={{ color: '#8a7f72', fontFamily: "'DM Sans', sans-serif" }}>Nothing found</p></div>
+            ? <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '80px 0' }}><p style={{ color: '#8a7f72', fontFamily: 'var(--font-dm-sans), sans-serif' }}>Nothing found</p></div>
             : filtered.map(item => (
               <MenuCard key={item.id} item={item} qty={getQty(item.id)}
                 onAdd={() => addToCart(item)} onRemove={() => removeFromCart(item.id)}
@@ -209,21 +190,19 @@ export default function MenuPage() {
           }
         </div>
 
-        {/* Powered by */}
         <div style={{ textAlign: 'center', padding: '32px 16px' }}>
-          <a href="https://quelessly.com" style={{ fontSize: 12, color: '#c9c2b8', textDecoration: 'none', fontFamily: "'DM Mono', monospace" }}>
+          <a href="https://quelessly.com" style={{ fontSize: 12, color: '#c9c2b8', textDecoration: 'none', fontFamily: 'var(--font-dm-mono), monospace' }}>
             powered by quelessly.
           </a>
         </div>
       </div>
 
-      {/* Cart pill */}
       {totalItems > 0 && (
         <button onClick={goToCart}
-          style={{ position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 50, background: '#ff6b00', color: '#fff', padding: '16px 28px', borderRadius: 40, fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16, whiteSpace: 'nowrap', boxShadow: '0 8px 28px rgba(255,107,0,0.35)', fontFamily: "'DM Sans', sans-serif", transition: 'all 0.2s' }}>
+          style={{ position: 'fixed', bottom: 32, left: '50%', transform: 'translateX(-50%)', zIndex: 50, background: '#ff6b00', color: '#fff', padding: '16px 28px', borderRadius: 40, fontWeight: 700, fontSize: 15, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 16, whiteSpace: 'nowrap', boxShadow: '0 8px 28px rgba(255,107,0,0.35)', fontFamily: 'var(--font-dm-sans), sans-serif', transition: 'all 0.2s' }}>
           <span style={{ background: 'rgba(255,255,255,0.2)', color: '#fff', fontWeight: 800, fontSize: 12, padding: '2px 10px', borderRadius: 20 }}>{totalItems}</span>
           View Cart
-          <span style={{ fontWeight: 800, fontFamily: "'DM Mono', monospace" }}>₹{totalAmount}</span>
+          <span style={{ fontWeight: 800, fontFamily: 'var(--font-dm-mono), monospace' }}>₹{totalAmount}</span>
         </button>
       )}
     </div>
@@ -239,7 +218,6 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
 
   return (
     <div className="menu-card">
-      {/* Image — capped height on desktop via .card-image class */}
       <div className="card-image">
         {item.image_url ? (
           <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -257,20 +235,19 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
         )}
       </div>
 
-      {/* Content */}
       <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         <div>
-          <p style={{ fontWeight: 600, color: '#1a1714', fontSize: 13, lineHeight: 1.3, margin: '0 0 4px', fontFamily: "'DM Sans', sans-serif", display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</p>
+          <p style={{ fontWeight: 600, color: '#1a1714', fontSize: 13, lineHeight: 1.3, margin: '0 0 4px', fontFamily: 'var(--font-dm-sans), sans-serif', display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</p>
           {showCategory && displayCat && (
-            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(displayCat)}`} style={{ fontSize: 10, fontFamily: "'DM Mono', monospace" }}>{displayCat}</span>
+            <span className={`text-[9px] px-1.5 py-0.5 rounded-full border font-semibold ${getPillStyle(displayCat)}`} style={{ fontSize: 10, fontFamily: 'var(--font-dm-mono), monospace' }}>{displayCat}</span>
           )}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 'auto' }}>
-          <span style={{ fontWeight: 700, fontSize: 14, color: '#1a1714', fontFamily: "'DM Mono', monospace" }}>₹{item.price}</span>
+          <span style={{ fontWeight: 700, fontSize: 14, color: '#1a1714', fontFamily: 'var(--font-dm-mono), monospace' }}>₹{item.price}</span>
           {qty > 0 ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: 4, background: '#FAF7F2', border: '1.5px solid rgba(255,107,0,0.3)', borderRadius: 20, padding: '2px 6px' }}>
               <button onClick={onRemove} className="qty-btn">−</button>
-              <span style={{ color: '#1a1714', fontWeight: 700, fontSize: 13, minWidth: 14, textAlign: 'center', fontFamily: "'DM Mono', monospace" }}>{qty}</span>
+              <span style={{ color: '#1a1714', fontWeight: 700, fontSize: 13, minWidth: 14, textAlign: 'center', fontFamily: 'var(--font-dm-mono), monospace' }}>{qty}</span>
               <button onClick={onAdd} className="qty-btn">+</button>
             </div>
           ) : (
