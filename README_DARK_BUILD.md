@@ -11,7 +11,7 @@ A fully functional **QR-based food ordering platform** with a modern dark theme 
 
 ---
 
-## 📁 File Structureee
+## 📁 File StructureSS
 
 ```
 src/
