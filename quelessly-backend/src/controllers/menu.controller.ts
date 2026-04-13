@@ -26,6 +26,7 @@ export const getVendorMenu = async (req: AuthRequest, res: Response, next: NextF
 export const addMenuItem = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const item = await menuService.addMenuItem(req.vendorId!, req.body)
+    res.setHeader('Cache-Control', 'no-store')
     sendSuccess(res, item, 201)
   } catch (err: any) {
     sendError(res, err.message)
@@ -36,6 +37,7 @@ export const editMenuItem = async (req: AuthRequest, res: Response, next: NextFu
   try {
     const itemId = req.params.itemId as string
     const item = await menuService.editMenuItem(req.vendorId!, itemId, req.body)
+    res.setHeader('Cache-Control', 'no-store')
     sendSuccess(res, item)
   } catch (err: any) {
     sendError(res, err.message)
@@ -46,6 +48,7 @@ export const removeMenuItem = async (req: AuthRequest, res: Response, next: Next
   try {
     const itemId = req.params.itemId as string
     await menuService.removeMenuItem(req.vendorId!, itemId)
+    res.setHeader('Cache-Control', 'no-store')
     sendSuccess(res, { message: 'Item deleted' })
   } catch (err: any) {
     sendError(res, err.message)
