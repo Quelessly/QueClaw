@@ -1,7 +1,17 @@
 import * as menuRepo from '../repositories/menu.repository'
+import * as vendorRepo from '../repositories/vendor.repository'
 
 export const getPublicMenu = (vendorId: string) =>
   menuRepo.getAvailableMenuByVendor(vendorId)
+
+export const getPublicMenuWithVendor = async (vendorId: string) => {
+  const [items, vendor] = await Promise.all([
+    menuRepo.getAvailableMenuByVendor(vendorId),
+    vendorRepo.findVendorById(vendorId),
+  ])
+  if (!vendor) throw new Error('Vendor not found')
+  return { items, vendor: { id: vendor.id, name: vendor.name } }
+}
 
 export const getVendorMenu = (vendorId: string) =>
   menuRepo.getMenuByVendor(vendorId)

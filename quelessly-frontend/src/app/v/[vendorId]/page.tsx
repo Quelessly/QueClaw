@@ -59,9 +59,14 @@ export default function MenuPage() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
+  // ── Single API call — returns { items, vendor } ──
   useEffect(() => {
-    api.get(`/menu/public/${vendorId}`).then(res => { if (res.success) setItems(res.data) }).finally(() => setLoading(false))
-    api.get(`/auth/vendor/${vendorId}`).then(res => { if (res.success && res.data?.name) setVendorName(res.data.name.toLowerCase()) })
+    api.get(`/menu/public/${vendorId}`).then(res => {
+      if (res.success) {
+        setItems(res.data.items)
+        if (res.data.vendor?.name) setVendorName(res.data.vendor.name.toLowerCase())
+      }
+    }).finally(() => setLoading(false))
   }, [vendorId])
 
   useEffect(() => {
@@ -239,7 +244,6 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
 
   return (
     <div className="menu-card">
-      {/* Image — capped height on desktop via .card-image class */}
       <div className="card-image">
         {item.image_url ? (
           <img src={item.image_url} alt={item.name} style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }} />
@@ -257,7 +261,6 @@ function MenuCard({ item, qty, onAdd, onRemove, showCategory }: {
         )}
       </div>
 
-      {/* Content */}
       <div style={{ padding: 12, display: 'flex', flexDirection: 'column', gap: 8, flex: 1 }}>
         <div>
           <p style={{ fontWeight: 600, color: '#1a1714', fontSize: 13, lineHeight: 1.3, margin: '0 0 4px', fontFamily: "'DM Sans', sans-serif", display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>{item.name}</p>

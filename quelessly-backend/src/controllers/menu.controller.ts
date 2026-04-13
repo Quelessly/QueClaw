@@ -6,8 +6,8 @@ import { sendSuccess, sendError } from '../utils/apiResponse'
 export const getPublicMenu = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const vendorId = req.params.vendorId as string
-    const items = await menuService.getPublicMenu(vendorId)
-    sendSuccess(res, items)
+    const data = await menuService.getPublicMenuWithVendor(vendorId)
+    sendSuccess(res, data)
   } catch (err: any) {
     sendError(res, err.message)
   }
