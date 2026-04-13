@@ -48,7 +48,6 @@ const CAT_COLOR: Record<string, string> = {
 }
 const getCatStyle = (cat: string) => CAT_COLOR[cat] ?? 'bg-zinc-700/50 text-zinc-400 border-zinc-600/30'
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;0,9..144,900;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
 
 function formatDateLabel(dateStr: string): string {
   const date = new Date(dateStr)
@@ -146,15 +145,15 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
     finally { setLoading(false) }
   }
 
-  const inputStyle: React.CSSProperties = { width: '100%', background: '#18181b', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' }
-  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 10, fontWeight: 600, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8, fontFamily: "'DM Mono', monospace" }
+  const inputStyle: React.CSSProperties = { width: '100%', background: '#18181b', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "var(--font-dm-sans), sans-serif", boxSizing: 'border-box' }
+  const labelStyle: React.CSSProperties = { display: 'block', fontSize: 10, fontWeight: 600, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', marginBottom: 8, fontFamily: "var(--font-dm-mono), monospace" }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#000', fontFamily: "'DM Sans', sans-serif", position: 'relative' }}>
-      <style>{FONTS}</style>
+    <div style={{ minHeight: '100vh', background: '#000', fontFamily: "var(--font-dm-sans), sans-serif", position: 'relative' }}>
+      
 
       {/* ✅ Fixed top-left back button */}
-      <a href="/" style={{ position: 'fixed', top: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 6, color: '#a1a1aa', fontSize: 13, textDecoration: 'none', fontFamily: "'DM Sans', sans-serif", background: '#18181b', border: '1px solid #27272a', borderRadius: 10, padding: '8px 14px', zIndex: 50 }}
+      <a href="/" style={{ position: 'fixed', top: 20, left: 20, display: 'inline-flex', alignItems: 'center', gap: 6, color: '#a1a1aa', fontSize: 13, textDecoration: 'none', fontFamily: "var(--font-dm-sans), sans-serif", background: '#18181b', border: '1px solid #27272a', borderRadius: 10, padding: '8px 14px', zIndex: 50 }}
         onMouseEnter={e => { (e.currentTarget as HTMLElement).style.color = '#fff'; (e.currentTarget as HTMLElement).style.borderColor = '#52525b' }}
         onMouseLeave={e => { (e.currentTarget as HTMLElement).style.color = '#a1a1aa'; (e.currentTarget as HTMLElement).style.borderColor = '#27272a' }}>
         ← Back to home
@@ -165,9 +164,9 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
         <div style={{ width: '100%', maxWidth: 360 }}>
           <div style={{ textAlign: 'center', marginBottom: 40 }}>
             <div style={{ width: 64, height: 64, background: '#ff6b00', borderRadius: 16, margin: '0 auto 20px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff' }}>Q</span>
+              <span style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff' }}>Q</span>
             </div>
-            <h1 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff', letterSpacing: '-1px', margin: 0 }}>quelessly.</h1>
+            <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 28, color: '#fff', letterSpacing: '-1px', margin: 0 }}>quelessly.</h1>
             <p style={{ color: '#52525b', fontSize: 13, marginTop: 4 }}>
               {mode === 'login' ? 'Vendor Command Center' : mode === 'forgot' ? 'Reset your password' : 'Enter your OTP'}
             </p>
@@ -191,7 +190,7 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
                     onBlur={e => e.target.style.borderColor = '#27272a'} />
                 </div>
                 <button type="button" onClick={() => setMode('forgot')}
-                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', textAlign: 'right', padding: 0, fontFamily: "'DM Sans', sans-serif" }}
+                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', textAlign: 'right', padding: 0, fontFamily: "var(--font-dm-sans), sans-serif" }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#ff6b00'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
                   Forgot password?
@@ -218,7 +217,7 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
                   {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Sending…</> : 'Send OTP →'}
                 </button>
                 <button type="button" onClick={() => setMode('login')}
-                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "var(--font-dm-sans), sans-serif" }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
                   ← Back to login
@@ -246,7 +245,7 @@ function LoginScreen({ onLogin, toast }: { onLogin: (t: string, v: Vendor) => vo
                   {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Resetting…</> : 'Reset password →'}
                 </button>
                 <button type="button" onClick={() => setMode('forgot')}
-                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}
+                  style={{ background: 'none', border: 'none', color: '#52525b', fontSize: 12, cursor: 'pointer', fontFamily: "var(--font-dm-sans), sans-serif" }}
                   onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
                   onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = '#52525b'}>
                   ← Resend OTP
@@ -330,9 +329,9 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
   const tabLabel = tab === 'orders' ? 'orders.' : tab === 'menu' ? 'menu.' : tab === 'qr' ? 'qr code.' : 'settings.'
 
   return (
-    <div className="min-h-screen bg-black flex" style={{ fontFamily: "'DM Sans', sans-serif" }}>
+    <div className="min-h-screen bg-black flex" style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}>
       <style>{`
-        ${FONTS}
+        
         @keyframes spin { to { transform: rotate(360deg); } }
         @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.4} }
         .sidebar-btn { width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center; border:none; cursor:pointer; transition:all 0.2s; position:relative; }
@@ -343,7 +342,7 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
       <aside className="hidden md:flex flex-col items-center py-8 gap-2 fixed left-0 top-0 bottom-0 z-40"
         style={{ width: 80, background: '#0a0a0a', borderRight: '1px solid #18181b' }}>
         <div style={{ width: 40, height: 40, background: '#ff6b00', borderRadius: 12, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24, flexShrink: 0 }}>
-          <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#fff' }}>Q</span>
+          <span style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#fff' }}>Q</span>
         </div>
         {TABS.map(t => (
           <button key={t.key} onClick={() => setTab(t.key)} title={t.label} className="sidebar-btn"
@@ -351,7 +350,7 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
             {t.icon}
             {t.badge !== undefined && (
               <span className="absolute -top-1 -right-1 flex items-center justify-center"
-                style={{ width: 16, height: 16, background: '#ff6b00', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: '50%', fontFamily: "'DM Mono', monospace" }}>
+                style={{ width: 16, height: 16, background: '#ff6b00', color: '#fff', fontSize: 10, fontWeight: 800, borderRadius: '50%', fontFamily: "var(--font-dm-mono), monospace" }}>
                 {t.badge > 9 ? '9+' : t.badge}
               </span>
             )}
@@ -372,25 +371,25 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
         <div className="sticky top-0 z-30 flex items-center justify-between"
           style={{ background: 'rgba(0,0,0,0.92)', backdropFilter: 'blur(16px)', borderBottom: '1px solid #18181b', padding: '16px 20px' }}>
           <div>
-            <h2 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{tabLabel}</h2>
+            <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff', letterSpacing: '-0.5px', margin: 0 }}>{tabLabel}</h2>
             {tab === 'orders' && (
-              <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>
+              <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "var(--font-dm-mono), monospace" }}>
                 {activeOrders.length} active · {pastOrders.length} past
                 {todayOrders.length > 0 && <span style={{ color: 'rgba(255,107,0,0.7)', marginLeft: 8 }}>· Today: {todayOrders.length} orders · ₹{todayRevenue}</span>}
               </p>
             )}
-            {vendor && tab !== 'orders' && <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "'DM Sans', sans-serif" }}>{vendor.name}</p>}
+            {vendor && tab !== 'orders' && <p style={{ color: '#52525b', fontSize: 12, marginTop: 2, fontFamily: "var(--font-dm-sans), sans-serif" }}>{vendor.name}</p>}
           </div>
           <div className="flex items-center gap-3">
             {tab === 'orders' && activeOrders.length > 0 && (
               <div className="flex items-center gap-1.5">
                 <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#ff6b00', display: 'inline-block', animation: 'pulse 1.5s ease-in-out infinite' }} />
-                <span style={{ fontSize: 12, color: '#52525b', fontFamily: "'DM Mono', monospace" }}>Live</span>
+                <span style={{ fontSize: 12, color: '#52525b', fontFamily: "var(--font-dm-mono), monospace" }}>Live</span>
               </div>
             )}
             {/* Logout button — mobile only */}
             <button onClick={onLogout} className="md:hidden"
-              style={{ fontSize: 12, color: '#52525b', border: '1px solid #27272a', padding: '6px 12px', borderRadius: 8, background: 'transparent', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+              style={{ fontSize: 12, color: '#52525b', border: '1px solid #27272a', padding: '6px 12px', borderRadius: 8, background: 'transparent', cursor: 'pointer', fontFamily: "var(--font-dm-sans), sans-serif" }}>
               Logout
             </button>
           </div>
@@ -413,7 +412,7 @@ function DashboardShell({ token, vendor, onLogout, toast }: {
             style={{ padding: '12px 0', gap: 2, background: 'none', border: 'none', cursor: 'pointer', color: tab === t.key ? '#ff6b00' : '#52525b', transition: 'color 0.2s' }}>
             {tab === t.key && <span className="absolute top-0 left-1/4 right-1/4" style={{ height: 2, background: '#ff6b00', borderRadius: '0 0 2px 2px' }} />}
             {t.icon}
-            <span style={{ fontSize: 9, fontWeight: 600, marginTop: 2, fontFamily: "'DM Mono', monospace" }}>{t.label}</span>
+            <span style={{ fontSize: 9, fontWeight: 600, marginTop: 2, fontFamily: "var(--font-dm-mono), monospace" }}>{t.label}</span>
             {t.badge !== undefined && (
               <span className="absolute top-2 right-1/4 flex items-center justify-center"
                 style={{ width: 14, height: 14, background: '#ff6b00', color: '#fff', fontSize: 9, fontWeight: 800, borderRadius: '50%' }}>
@@ -455,12 +454,12 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
       {todayOrders.length > 0 && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
           <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 16, padding: 16 }}>
-            <p style={{ fontSize: 10, color: '#52525b', marginBottom: 4, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: 'uppercase' }}>Today's orders</p>
-            <p style={{ fontSize: 24, fontWeight: 800, color: '#fff', fontFamily: "'DM Mono', monospace", margin: 0 }}>{todayOrders.length}</p>
+            <p style={{ fontSize: 10, color: '#52525b', marginBottom: 4, fontFamily: "var(--font-dm-mono), monospace", letterSpacing: 1, textTransform: 'uppercase' }}>Today's orders</p>
+            <p style={{ fontSize: 24, fontWeight: 800, color: '#fff', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>{todayOrders.length}</p>
           </div>
           <div style={{ background: '#0d0d0d', border: '1px solid #27272a', borderRadius: 16, padding: 16 }}>
-            <p style={{ fontSize: 10, color: '#52525b', marginBottom: 4, fontFamily: "'DM Mono', monospace", letterSpacing: 1, textTransform: 'uppercase' }}>Today's revenue</p>
-            <p style={{ fontSize: 24, fontWeight: 800, color: '#ff6b00', fontFamily: "'DM Mono', monospace", margin: 0 }}>₹{todayRevenue}</p>
+            <p style={{ fontSize: 10, color: '#52525b', marginBottom: 4, fontFamily: "var(--font-dm-mono), monospace", letterSpacing: 1, textTransform: 'uppercase' }}>Today's revenue</p>
+            <p style={{ fontSize: 24, fontWeight: 800, color: '#ff6b00', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>₹{todayRevenue}</p>
           </div>
         </div>
       )}
@@ -468,8 +467,8 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
       <section>
         {activeOrders.length === 0 ? (
           <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: '48px 24px', textAlign: 'center' }}>
-            <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#52525b', margin: '0 0 4px' }}>All quiet</p>
-            <p style={{ color: '#3f3f46', fontSize: 13, fontFamily: "'DM Sans', sans-serif", margin: 0 }}>New orders appear here in real time</p>
+            <p style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#52525b', margin: '0 0 4px' }}>All quiet</p>
+            <p style={{ color: '#3f3f46', fontSize: 13, fontFamily: "var(--font-dm-sans), sans-serif", margin: 0 }}>New orders appear here in real time</p>
           </div>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -482,16 +481,16 @@ function OrdersTab({ activeOrders, pastOrders, todayOrders, todayRevenue, loadin
 
       {pastGroups.length > 0 && (
         <section style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#3f3f46', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>Past Orders</p>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#3f3f46', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>Past Orders</p>
           {pastGroups.map(({ label, orders }) => (
             <div key={label} style={{ background: '#0a0a0a', border: '1px solid #1c1c1c', borderRadius: 16, overflow: 'hidden' }}>
               <button onClick={() => toggleGroup(label)} style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: 'none', border: 'none', cursor: 'pointer' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                  <span style={{ fontSize: 14, fontWeight: 600, color: '#fff', fontFamily: "'DM Sans', sans-serif" }}>{label}</span>
-                  <span style={{ fontSize: 11, color: '#52525b', fontFamily: "'DM Mono', monospace", background: '#18181b', padding: '2px 8px', borderRadius: 20, border: '1px solid #27272a' }}>
+                  <span style={{ fontSize: 14, fontWeight: 600, color: '#fff', fontFamily: "var(--font-dm-sans), sans-serif" }}>{label}</span>
+                  <span style={{ fontSize: 11, color: '#52525b', fontFamily: "var(--font-dm-mono), monospace", background: '#18181b', padding: '2px 8px', borderRadius: 20, border: '1px solid #27272a' }}>
                     {orders.length} order{orders.length !== 1 ? 's' : ''}
                   </span>
-                  <span style={{ fontSize: 11, color: '#52525b', fontFamily: "'DM Mono', monospace" }}>₹{orders.reduce((s, o) => s + Number(o.total_amount), 0)}</span>
+                  <span style={{ fontSize: 11, color: '#52525b', fontFamily: "var(--font-dm-mono), monospace" }}>₹{orders.reduce((s, o) => s + Number(o.total_amount), 0)}</span>
                 </div>
                 <span style={{ color: '#52525b', fontSize: 11, display: 'inline-block', transform: collapsedGroups.has(label) ? 'rotate(0deg)' : 'rotate(180deg)', transition: 'transform 0.2s' }}>▼</span>
               </button>
@@ -561,7 +560,7 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/><path d="M10 11v6M14 11v6M9 6V4a1 1 0 011-1h4a1 1 0 011 1v2"/>
             </svg>
-            <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, fontFamily: "'DM Sans', sans-serif" }}>Dismiss</span>
+            <span style={{ color: '#fff', fontSize: 10, fontWeight: 700, fontFamily: "var(--font-dm-sans), sans-serif" }}>Dismiss</span>
           </div>
         </div>
       )}
@@ -570,12 +569,12 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
         onTouchStart={onTouchStart} onTouchMove={onTouchMove} onTouchEnd={onTouchEnd}>
         <div className={`h-1 w-full ${cfg.bar}`} />
         {isNew && (
-          <div style={{ background: '#ff6b00', color: '#fff', fontSize: 11, fontWeight: 800, textAlign: 'center', padding: '6px 0', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace" }}>
+          <div style={{ background: '#ff6b00', color: '#fff', fontSize: 11, fontWeight: 800, textAlign: 'center', padding: '6px 0', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace" }}>
             ✦ New Order
           </div>
         )}
         {sla && !isNew && (
-          <div style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', fontSize: 11, fontWeight: 700, textAlign: 'center', padding: '6px 0', letterSpacing: 2, textTransform: 'uppercase', borderBottom: '1px solid rgba(239,68,68,0.2)', fontFamily: "'DM Mono', monospace" }}>
+          <div style={{ background: 'rgba(239,68,68,0.08)', color: '#f87171', fontSize: 11, fontWeight: 700, textAlign: 'center', padding: '6px 0', letterSpacing: 2, textTransform: 'uppercase', borderBottom: '1px solid rgba(239,68,68,0.2)', fontFamily: "var(--font-dm-mono), monospace" }}>
             ⚠ Waiting {Math.floor((Date.now() - new Date(order.created_at).getTime()) / 60000)}m
           </div>
         )}
@@ -583,17 +582,17 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 6 }}>
-                <span style={{ color: '#52525b', fontFamily: "'DM Mono', monospace", fontSize: 14 }}>#</span>
-                <p style={{ fontFamily: "'Fraunces', serif", fontWeight: 800, color: '#fff', fontSize: 24, letterSpacing: '-1px', margin: 0 }}>{order.id.slice(0, 8).toUpperCase()}</p>
+                <span style={{ color: '#52525b', fontFamily: "var(--font-dm-mono), monospace", fontSize: 14 }}>#</span>
+                <p style={{ fontFamily: "var(--font-fraunces), serif", fontWeight: 800, color: '#fff', fontSize: 24, letterSpacing: '-1px', margin: 0 }}>{order.id.slice(0, 8).toUpperCase()}</p>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 6 }}>
-                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>{time}</span>
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "var(--font-dm-mono), monospace" }}>{time}</span>
                 <span style={{ width: 3, height: 3, borderRadius: '50%', background: '#3f3f46', display: 'inline-block' }} />
-                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "var(--font-dm-sans), sans-serif" }}>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
               </div>
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>{cfg.label}</span>
+              <span className={`text-xs font-bold px-3 py-1.5 rounded-full ${cfg.badge}`} style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}>{cfg.label}</span>
               {isPending && (
                 <button onClick={() => onDismiss(order.id)} title="Dismiss order"
                   style={{ width: 28, height: 28, borderRadius: 8, background: '#1c1c1c', border: 'none', color: '#52525b', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', transition: 'all 0.15s' }}
@@ -607,24 +606,24 @@ function OrderCard({ order, isNew, updating, dismissing, onUpdate, onDismiss }: 
           <div style={{ background: 'rgba(255,255,255,0.04)', borderRadius: 12, overflow: 'hidden', marginBottom: 16 }}>
             {order.order_items?.map((item, idx) => (
               <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 16px', borderTop: idx !== 0 ? '1px solid rgba(255,255,255,0.05)' : 'none' }}>
-                <span style={{ width: 24, height: 24, borderRadius: 6, background: '#27272a', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "'DM Mono', monospace" }}>{item.quantity}</span>
-                <span style={{ color: '#fff', fontSize: 14, fontWeight: 500, flex: 1, fontFamily: "'DM Sans', sans-serif" }}>{item.menu_item?.name}</span>
-                <span style={{ color: '#71717a', fontSize: 13, fontFamily: "'DM Mono', monospace" }}>₹{Number(item.price) * item.quantity}</span>
+                <span style={{ width: 24, height: 24, borderRadius: 6, background: '#27272a', color: '#fff', fontSize: 11, fontWeight: 800, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "var(--font-dm-mono), monospace" }}>{item.quantity}</span>
+                <span style={{ color: '#fff', fontSize: 14, fontWeight: 500, flex: 1, fontFamily: "var(--font-dm-sans), sans-serif" }}>{item.menu_item?.name}</span>
+                <span style={{ color: '#71717a', fontSize: 13, fontFamily: "var(--font-dm-mono), monospace" }}>₹{Number(item.price) * item.quantity}</span>
               </div>
             ))}
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '10px 16px', borderTop: '1px solid rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.03)' }}>
-              <span style={{ color: '#52525b', fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace" }}>Total</span>
-              <span style={{ color: '#ff6b00', fontWeight: 800, fontSize: 18, fontFamily: "'DM Mono', monospace" }}>₹{Number(order.total_amount)}</span>
+              <span style={{ color: '#52525b', fontSize: 11, fontWeight: 600, letterSpacing: 1, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace" }}>Total</span>
+              <span style={{ color: '#ff6b00', fontWeight: 800, fontSize: 18, fontFamily: "var(--font-dm-mono), monospace" }}>₹{Number(order.total_amount)}</span>
             </div>
           </div>
           {isPending && (
-            <p style={{ color: '#3f3f46', fontSize: 12, textAlign: 'center', marginBottom: 12, fontFamily: "'DM Sans', sans-serif" }}>
+            <p style={{ color: '#3f3f46', fontSize: 12, textAlign: 'center', marginBottom: 12, fontFamily: "var(--font-dm-sans), sans-serif" }}>
               Waiting for payment · swipe left to dismiss
             </p>
           )}
           {action && (
             <button onClick={() => onUpdate(order.id, next!)} disabled={updating}
-              style={{ width: '100%', padding: '14px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: action.bg, color: action.color, fontFamily: "'DM Sans', sans-serif", opacity: updating ? 0.6 : 1, transition: 'all 0.15s' }}>
+              style={{ width: '100%', padding: '14px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: action.bg, color: action.color, fontFamily: "var(--font-dm-sans), sans-serif", opacity: updating ? 0.6 : 1, transition: 'all 0.15s' }}>
               {updating ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Updating…</> : action.label}
             </button>
           )}
@@ -648,18 +647,18 @@ function PastOrderCard({ order }: { order: Order }) {
         <div className={`w-1.5 h-8 rounded-full shrink-0 ${cfg.bar}`} style={{ width: 4, height: 28, borderRadius: 4, flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-            <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>#</span>
-            <span style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: "'DM Mono', monospace" }}>{order.id.slice(0, 8).toUpperCase()}</span>
+            <span style={{ color: '#52525b', fontSize: 12, fontFamily: "var(--font-dm-mono), monospace" }}>#</span>
+            <span style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: "var(--font-dm-mono), monospace" }}>{order.id.slice(0, 8).toUpperCase()}</span>
             <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cfg.badge}`}>{cfg.label}</span>
           </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginTop: 2 }}>
-            <span style={{ color: '#52525b', fontSize: 11, fontFamily: "'DM Mono', monospace" }}>{time}</span>
+            <span style={{ color: '#52525b', fontSize: 11, fontFamily: "var(--font-dm-mono), monospace" }}>{time}</span>
             <span style={{ color: '#3f3f46' }}>·</span>
-            <span style={{ color: '#52525b', fontSize: 11, fontFamily: "'DM Sans', sans-serif" }}>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
+            <span style={{ color: '#52525b', fontSize: 11, fontFamily: "var(--font-dm-sans), sans-serif" }}>{itemCount} item{itemCount !== 1 ? 's' : ''}</span>
           </div>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexShrink: 0 }}>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: "'DM Mono', monospace" }}>₹{Number(order.total_amount)}</span>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 13, fontFamily: "var(--font-dm-mono), monospace" }}>₹{Number(order.total_amount)}</span>
           <span style={{ color: '#52525b', fontSize: 11, display: 'inline-block', transform: expanded ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s' }}>▼</span>
         </div>
       </button>
@@ -668,9 +667,9 @@ function PastOrderCard({ order }: { order: Order }) {
           <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 4 }}>
             {order.order_items?.map(item => (
               <div key={item.id} style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '6px 0' }}>
-                <span style={{ width: 20, height: 20, borderRadius: 6, background: '#1c1c1c', color: '#71717a', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "'DM Mono', monospace" }}>{item.quantity}</span>
-                <span style={{ color: '#a1a1aa', fontSize: 12, flex: 1, fontFamily: "'DM Sans', sans-serif" }}>{item.menu_item?.name}</span>
-                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Mono', monospace" }}>₹{Number(item.price) * item.quantity}</span>
+                <span style={{ width: 20, height: 20, borderRadius: 6, background: '#1c1c1c', color: '#71717a', fontSize: 10, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontFamily: "var(--font-dm-mono), monospace" }}>{item.quantity}</span>
+                <span style={{ color: '#a1a1aa', fontSize: 12, flex: 1, fontFamily: "var(--font-dm-sans), sans-serif" }}>{item.menu_item?.name}</span>
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "var(--font-dm-mono), monospace" }}>₹{Number(item.price) * item.quantity}</span>
               </div>
             ))}
           </div>
@@ -730,17 +729,17 @@ function MenuTab({ token, toast }: { token: string; toast: (m: string, t?: any) 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>{Array.from({ length: 4 }).map((_, i) => <SkeletonOrderCard key={i} />)}</div>
       ) : items.length === 0 ? (
         <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: '48px 24px', textAlign: 'center' }}>
-          <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#52525b', margin: '0 0 4px' }}>No items yet</p>
-          <p style={{ color: '#3f3f46', fontSize: 13, fontFamily: "'DM Sans', sans-serif", margin: 0 }}>Tap + to add your first item</p>
+          <p style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 18, color: '#52525b', margin: '0 0 4px' }}>No items yet</p>
+          <p style={{ color: '#3f3f46', fontSize: 13, fontFamily: "var(--font-dm-sans), sans-serif", margin: 0 }}>Tap + to add your first item</p>
         </div>
       ) : (
         allCats.map(cat => (
           <section key={cat}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 12 }}>
               <span style={{ fontSize: 16 }}>{CAT_ICON[cat] ?? '🍴'}</span>
-              <p style={{ fontSize: 10, fontWeight: 700, color: '#71717a', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>{cat}</p>
+              <p style={{ fontSize: 10, fontWeight: 700, color: '#71717a', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>{cat}</p>
               <div style={{ flex: 1, height: 1, background: '#1c1c1c' }} />
-              <span style={{ fontSize: 10, color: '#3f3f46', fontFamily: "'DM Mono', monospace", background: '#111', padding: '2px 8px', borderRadius: 20, border: '1px solid #1c1c1c' }}>
+              <span style={{ fontSize: 10, color: '#3f3f46', fontFamily: "var(--font-dm-mono), monospace", background: '#111', padding: '2px 8px', borderRadius: 20, border: '1px solid #1c1c1c' }}>
                 {items.filter(i => (i.categories ?? []).includes(cat)).length}
               </span>
             </div>
@@ -779,11 +778,11 @@ function InlineField({ value, type = 'text', prefix = '', onSave }: { value: str
       {prefix && <span style={{ color: '#71717a', fontSize: 12 }}>{prefix}</span>}
       <input autoFocus type={type} value={val} onChange={e => setVal(e.target.value)} onBlur={commit}
         onKeyDown={e => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') { setVal(value); setEditing(false) } }}
-        style={{ background: '#27272a', border: '1px solid rgba(255,107,0,0.5)', borderRadius: 4, padding: '2px 6px', fontSize: 12, color: '#fff', outline: 'none', width: 64, fontFamily: "'DM Mono', monospace" }} />
+        style={{ background: '#27272a', border: '1px solid rgba(255,107,0,0.5)', borderRadius: 4, padding: '2px 6px', fontSize: 12, color: '#fff', outline: 'none', width: 64, fontFamily: "var(--font-dm-mono), monospace" }} />
     </span>
   )
   return (
-    <span onClick={() => { setVal(value); setEditing(true) }} style={{ cursor: 'text', fontFamily: "'DM Sans', sans-serif" }}
+    <span onClick={() => { setVal(value); setEditing(true) }} style={{ cursor: 'text', fontFamily: "var(--font-dm-sans), sans-serif" }}
       onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#ff6b00'}
       onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = ''}>
       {prefix}{value}
@@ -802,7 +801,7 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
       <div style={{ height: 80, background: '#1c1c1c', display: 'flex', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
         {!item.is_available && (
           <div style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <span style={{ color: '#52525b', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace" }}>Unavailable</span>
+            <span style={{ color: '#52525b', fontSize: 10, fontWeight: 700, letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace" }}>Unavailable</span>
           </div>
         )}
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3f3f46" strokeWidth="1.5" style={{ opacity: 0.3 }}>
@@ -821,7 +820,7 @@ function MenuItemCard({ item, onToggle, onDelete, onEdit, onInlineEdit }: {
         <p style={{ fontWeight: 600, color: '#fff', fontSize: 12, lineHeight: 1.3, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', margin: '0 0 2px' }}>
           <InlineField value={item.name} onSave={v => onInlineEdit(item, 'name', v)} />
         </p>
-        <p style={{ color: '#ff6b00', fontFamily: "'DM Mono', monospace", fontWeight: 700, fontSize: 12, margin: 0 }}>
+        <p style={{ color: '#ff6b00', fontFamily: "var(--font-dm-mono), monospace", fontWeight: 700, fontSize: 12, margin: 0 }}>
           <InlineField value={item.price} type="number" prefix="₹" onSave={v => onInlineEdit(item, 'price', v)} />
         </p>
         <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 4, marginTop: 8 }}>
@@ -863,27 +862,27 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
     } finally { setLoading(false) }
   }
 
-  const inputStyle = { width: '100%', background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' as const }
+  const inputStyle = { width: '100%', background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 12, padding: '10px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "var(--font-dm-sans), sans-serif", boxSizing: 'border-box' as const }
 
   return (
     <div style={{ background: '#111', border: '1px solid #27272a', borderRadius: 20, padding: 20 }}>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
-        <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 16, color: '#fff', margin: 0 }}>{editItem ? 'Edit item' : 'New item'}</p>
+        <p style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 16, color: '#fff', margin: 0 }}>{editItem ? 'Edit item' : 'New item'}</p>
         <button onClick={onClose} style={{ width: 28, height: 28, borderRadius: 8, background: '#1c1c1c', border: 'none', color: '#71717a', fontSize: 14, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>✕</button>
       </div>
       <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
         <input value={name} onChange={e => setName(e.target.value)} placeholder="Item name" style={inputStyle}
           onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
-        <input type="number" min="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="Price ₹" style={{ ...inputStyle, fontFamily: "'DM Mono', monospace" }}
+        <input type="number" min="1" value={price} onChange={e => setPrice(e.target.value)} placeholder="Price ₹" style={{ ...inputStyle, fontFamily: "var(--font-dm-mono), monospace" }}
           onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
         <div>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", marginBottom: 8 }}>
-            Categories <span style={{ color: '#3f3f46', textTransform: 'none', fontWeight: 400, letterSpacing: 0, fontFamily: "'DM Sans', sans-serif" }}>(select all that apply)</span>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", marginBottom: 8 }}>
+            Categories <span style={{ color: '#3f3f46', textTransform: 'none', fontWeight: 400, letterSpacing: 0, fontFamily: "var(--font-dm-sans), sans-serif" }}>(select all that apply)</span>
           </p>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
             {allOptions.map(c => (
               <button key={c} type="button" onClick={() => toggleCat(c)}
-                style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', border: 'none', background: selectedCats.includes(c) ? '#ff6b00' : '#1c1c1c', color: selectedCats.includes(c) ? '#fff' : '#71717a', fontFamily: "'DM Sans', sans-serif" }}>
+                style={{ padding: '4px 12px', borderRadius: 20, fontSize: 12, fontWeight: 600, cursor: 'pointer', transition: 'all 0.15s', border: 'none', background: selectedCats.includes(c) ? '#ff6b00' : '#1c1c1c', color: selectedCats.includes(c) ? '#fff' : '#71717a', fontFamily: "var(--font-dm-sans), sans-serif" }}>
                 {selectedCats.includes(c) ? '✓ ' : ''}{c}
               </button>
             ))}
@@ -891,7 +890,7 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
           {selectedCats.length > 0 && (
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 8 }}>
               {selectedCats.map(c => (
-                <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold ${getCatStyle(c)}`} style={{ fontFamily: "'DM Sans', sans-serif" }}>
+                <span key={c} className={`flex items-center gap-1 px-2.5 py-1 rounded-full border text-xs font-semibold ${getCatStyle(c)}`} style={{ fontFamily: "var(--font-dm-sans), sans-serif" }}>
                   {c}<button type="button" onClick={() => toggleCat(c)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'inherit', lineHeight: 1 }}>×</button>
                 </span>
               ))}
@@ -901,14 +900,14 @@ function MenuItemForm({ token, editItem, existingCategories, onClose, onSave, to
             <input value={customInput} onChange={e => setCustomInput(e.target.value)}
               onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addCustom() } }}
               placeholder="Custom category…"
-              style={{ flex: 1, background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 10, padding: '8px 12px', fontSize: 12, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif" }}
+              style={{ flex: 1, background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 10, padding: '8px 12px', fontSize: 12, color: '#fff', outline: 'none', fontFamily: "var(--font-dm-sans), sans-serif" }}
               onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
             <button type="button" onClick={addCustom}
-              style={{ padding: '8px 12px', background: '#27272a', border: 'none', borderRadius: 10, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>+ Add</button>
+              style={{ padding: '8px 12px', background: '#27272a', border: 'none', borderRadius: 10, color: '#fff', fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: "var(--font-dm-sans), sans-serif" }}>+ Add</button>
           </div>
         </div>
         <button type="submit" disabled={loading}
-          style={{ width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#ff6b00', color: '#fff', fontFamily: "'DM Sans', sans-serif", opacity: loading ? 0.6 : 1 }}>
+          style={{ width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#ff6b00', color: '#fff', fontFamily: "var(--font-dm-sans), sans-serif", opacity: loading ? 0.6 : 1 }}>
           {loading ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Saving…</> : editItem ? 'Save Changes' : 'Add to Menu'}
         </button>
       </form>
@@ -939,31 +938,31 @@ function QRTab({ vendorId, vendorName }: { vendorId?: string; vendorName?: strin
     <div style={{ maxWidth: 360, margin: '0 auto', display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: 32, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
         <div style={{ textAlign: 'center' }}>
-          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: '0 0 4px' }}>Scan to Order</p>
-          <p style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, color: '#fff', fontSize: 22, letterSpacing: '-0.5px', margin: 0 }}>{vendorName ?? 'your menu'}</p>
+          <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: '0 0 4px' }}>Scan to Order</p>
+          <p style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, color: '#fff', fontSize: 22, letterSpacing: '-0.5px', margin: 0 }}>{vendorName ?? 'your menu'}</p>
         </div>
         <div ref={qrRef} style={{ padding: 20, background: '#fff', borderRadius: 16, boxShadow: '0 0 40px rgba(255,107,0,0.12)' }}>
           <QRCodeSVG value={menuUrl} size={200} bgColor="#ffffff" fgColor="#09090b" level="H" includeMargin={false} />
         </div>
-        <p style={{ fontSize: 11, color: '#3f3f46', fontFamily: "'DM Mono', monospace", wordBreak: 'break-all', textAlign: 'center', padding: '0 8px' }}>{menuUrl}</p>
+        <p style={{ fontSize: 11, color: '#3f3f46', fontFamily: "var(--font-dm-mono), monospace", wordBreak: 'break-all', textAlign: 'center', padding: '0 8px' }}>{menuUrl}</p>
       </div>
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
-        <button onClick={downloadSVG} style={{ background: '#111', border: '1px solid #27272a', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
+        <button onClick={downloadSVG} style={{ background: '#111', border: '1px solid #27272a', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "var(--font-dm-sans), sans-serif" }}>
           ⬇ Download
         </button>
-        <button onClick={copyLink} style={{ background: '#ff6b00', border: 'none', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "'DM Sans', sans-serif" }}>
+        <button onClick={copyLink} style={{ background: '#ff6b00', border: 'none', borderRadius: 14, padding: '16px 0', fontWeight: 700, fontSize: 14, color: '#fff', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, fontFamily: "var(--font-dm-sans), sans-serif" }}>
           🔗 Copy Link
         </button>
       </div>
       <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 16, padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>How it works</p>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>How it works</p>
         <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           {[['Print & place', 'on each table or the counter'], ['Customer scans', 'with their phone camera — no app needed'], ['They order & pay', 'instantly via UPI / card'], ['You get notified', 'in real time on this dashboard']].map(([title, desc], i) => (
             <div key={i} style={{ display: 'flex', alignItems: 'flex-start', gap: 12 }}>
-              <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#111', border: '1px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#ff6b00', flexShrink: 0, marginTop: 1, fontFamily: "'DM Mono', monospace" }}>{i + 1}</span>
+              <span style={{ width: 20, height: 20, borderRadius: '50%', background: '#111', border: '1px solid #27272a', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 10, fontWeight: 700, color: '#ff6b00', flexShrink: 0, marginTop: 1, fontFamily: "var(--font-dm-mono), monospace" }}>{i + 1}</span>
               <div>
-                <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>{title} </span>
-                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "'DM Sans', sans-serif" }}>{desc}</span>
+                <span style={{ color: '#fff', fontSize: 12, fontWeight: 600, fontFamily: "var(--font-dm-sans), sans-serif" }}>{title} </span>
+                <span style={{ color: '#52525b', fontSize: 12, fontFamily: "var(--font-dm-sans), sans-serif" }}>{desc}</span>
               </div>
             </div>
           ))}
@@ -993,34 +992,34 @@ function SettingsTab({ vendor, token, toast, onLogout }: {
     finally { setSaving(false) }
   }
 
-  const inputStyle = { width: '100%', background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "'DM Sans', sans-serif", boxSizing: 'border-box' as const }
-  const labelStyle = { display: 'block', fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 8, fontFamily: "'DM Mono', monospace" }
+  const inputStyle = { width: '100%', background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "var(--font-dm-sans), sans-serif", boxSizing: 'border-box' as const }
+  const labelStyle = { display: 'block', fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 8, fontFamily: "var(--font-dm-mono), monospace" }
 
   return (
     <div style={{ maxWidth: 360, display: 'flex', flexDirection: 'column', gap: 16 }}>
       <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
-        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>Canteen Profile</p>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>Canteen Profile</p>
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
           <div>
             <label style={labelStyle}>Canteen Name</label>
             <input value={name} onChange={e => setName(e.target.value)} placeholder="Your canteen name" style={inputStyle}
               onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'} onBlur={e => e.target.style.borderColor = '#27272a'} />
-            <p style={{ fontSize: 12, color: '#3f3f46', marginTop: 6, fontFamily: "'DM Sans', sans-serif" }}>This name is shown to customers on the menu page.</p>
+            <p style={{ fontSize: 12, color: '#3f3f46', marginTop: 6, fontFamily: "var(--font-dm-sans), sans-serif" }}>This name is shown to customers on the menu page.</p>
           </div>
           <div>
             <label style={labelStyle}>Email</label>
-            <p style={{ fontSize: 14, color: '#71717a', fontFamily: "'DM Sans', sans-serif", margin: 0 }}>{vendor?.email ?? '—'}</p>
+            <p style={{ fontSize: 14, color: '#71717a', fontFamily: "var(--font-dm-sans), sans-serif", margin: 0 }}>{vendor?.email ?? '—'}</p>
           </div>
           <button type="submit" disabled={saving}
-            style={{ width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#ff6b00', color: '#fff', fontFamily: "'DM Sans', sans-serif", opacity: saving ? 0.6 : 1 }}>
+            style={{ width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#ff6b00', color: '#fff', fontFamily: "var(--font-dm-sans), sans-serif", opacity: saving ? 0.6 : 1 }}>
             {saving ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Saving…</> : 'Save Changes'}
           </button>
         </form>
       </div>
       <div style={{ background: '#0d0d0d', border: '1px solid rgba(244,63,94,0.12)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
-        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "'DM Mono', monospace", margin: 0 }}>Account</p>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>Account</p>
         <button onClick={onLogout}
-          style={{ width: '100%', background: 'rgba(244,63,94,0.08)', color: '#f87171', border: '1px solid rgba(244,63,94,0.2)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "'DM Sans', sans-serif" }}>
+          style={{ width: '100%', background: 'rgba(244,63,94,0.08)', color: '#f87171', border: '1px solid rgba(244,63,94,0.2)', borderRadius: 12, padding: '12px 0', fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: "var(--font-dm-sans), sans-serif" }}>
           Sign out
         </button>
       </div>

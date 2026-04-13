@@ -2,20 +2,18 @@
 
 import Footer from '@/components/Footer'
 
-const FONTS = `@import url('https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,700;1,9..144,400;1,9..144,700&family=DM+Sans:wght@300;400;500;600&family=DM+Mono:wght@400;500&display=swap');`
 
 export default function RefundsPage() {
   return (
-    <div style={{ minHeight: '100vh', background: '#FAF7F2', color: '#1a1714', fontFamily: "'DM Sans', sans-serif" }}>
-      <style>{`${FONTS} * { box-sizing: border-box; margin: 0; padding: 0; }`}</style>
+    <div style={{ minHeight: '100vh', background: '#FAF7F2', color: '#1a1714', fontFamily: "var(--font-dm-sans), sans-serif" }}>
 
       <div style={{ maxWidth: 680, margin: '0 auto', padding: '64px 20px' }}>
         <div style={{ marginBottom: 48 }}>
           <div style={{ width: 44, height: 44, background: '#ff6b00', borderRadius: 14, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 24 }}>
-            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff' }}>Q</span>
+            <span style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#fff' }}>Q</span>
           </div>
-          <h1 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 38, color: '#1a1714', letterSpacing: '-1.5px', marginBottom: 10 }}>Refund & Cancellation Policy</h1>
-          <p style={{ color: '#8a7f72', fontSize: 13, fontFamily: "'DM Mono', monospace" }}>Last updated: April 2026</p>
+          <h1 style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 38, color: '#1a1714', letterSpacing: '-1.5px', marginBottom: 10 }}>Refund & Cancellation Policy</h1>
+          <p style={{ color: '#8a7f72', fontSize: 13, fontFamily: "var(--font-dm-mono), monospace" }}>Last updated: April 2026</p>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
@@ -78,7 +76,7 @@ export default function RefundsPage() {
 function Section({ title, children }: { title: string; children: React.ReactNode }) {
   return (
     <section>
-      <h2 style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#023341', letterSpacing: '-0.3px', marginBottom: 12 }}>{title}</h2>
+      <h2 style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 20, color: '#023341', letterSpacing: '-0.3px', marginBottom: 12 }}>{title}</h2>
       <div style={{ color: '#3d3830', fontSize: 15, lineHeight: 1.85, display: 'flex', flexDirection: 'column', gap: 10 }}>{children}</div>
     </section>
   )

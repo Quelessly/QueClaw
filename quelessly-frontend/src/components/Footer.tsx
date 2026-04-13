@@ -9,9 +9,9 @@ export default function Footer() {
           {/* Logo */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <div style={{ width: 28, height: 28, background: '#ff6b00', borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 14, color: '#fff' }}>Q</span>
+              <span style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 14, color: '#fff' }}>Q</span>
             </div>
-            <span style={{ fontFamily: "'Fraunces', serif", fontStyle: 'italic', fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: '-0.3px' }}>quelessly.</span>
+            <span style={{ fontFamily: "var(--font-fraunces), serif", fontStyle: 'italic', fontWeight: 700, fontSize: 16, color: '#fff', letterSpacing: '-0.3px' }}>quelessly.</span>
           </div>
 
           {/* Nav links */}
@@ -24,7 +24,7 @@ export default function Footer() {
               ['Refund Policy', '/refunds'],
             ].map(([label, href]) => (
               <Link key={label} href={href}
-                style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontFamily: "'DM Sans', sans-serif", transition: 'color 0.2s' }}
+                style={{ fontSize: 12, color: 'rgba(255,255,255,0.4)', textDecoration: 'none', fontFamily: "var(--font-dm-sans), sans-serif", transition: 'color 0.2s' }}
                 onMouseEnter={e => (e.currentTarget as HTMLElement).style.color = '#fff'}
                 onMouseLeave={e => (e.currentTarget as HTMLElement).style.color = 'rgba(255,255,255,0.4)'}>
                 {label}
@@ -33,7 +33,7 @@ export default function Footer() {
           </nav>
 
           {/* Copyright */}
-          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "'DM Mono', monospace" }}>
+          <p style={{ fontSize: 11, color: 'rgba(255,255,255,0.2)', fontFamily: "var(--font-dm-mono), monospace" }}>
             © {new Date().getFullYear()} Quelessly. All rights reserved.
           </p>
 
