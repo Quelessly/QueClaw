@@ -1,0 +1,16 @@
+{
+  "output": {
+    "filePath": "repomix-output.txt"
+  },
+  "ignore": {
+    "patterns": [
+      "node_modules",
+      "dist",
+      ".next",
+      "*.lock",
+      "repomix-output.txt",
+      ".env",
+      ".env.local"
+    ]
+  }
+}
