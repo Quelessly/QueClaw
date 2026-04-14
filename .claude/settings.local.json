@@ -5,7 +5,10 @@
       "Bash(curl -s \"http://localhost:4000/api/v1/menu/public/a1112859-55c2-4156-b343-06818570824b\")",
       "Bash(curl -s -X POST http://localhost:4000/api/v1/auth/login -H \"Content-Type: application/json\" -d '{\"email\":\"test@quelessly.com\",\"password\":\"password123\"}')",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(python3 -c \"from graphify.cli import main; main\\(\\)\" -- update . --semantic)",
+      "Bash(python3 -m graphify update . --semantic)",
+      "Bash(python3:*)"
     ]
   }
 }
