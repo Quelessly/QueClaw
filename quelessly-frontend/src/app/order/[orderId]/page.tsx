@@ -142,23 +142,86 @@ export default function OrderPage() {
   const triggerPulse = () => { setStatusPulse(true); setTimeout(() => setStatusPulse(false), 1200) }
 
   useEffect(() => {
-    if (!orderId) return
-    api.get(`/orders/${orderId}`).then(res => { if (res.success) setOrder(res.data) }).finally(() => setLoading(false))
-    let socket: ReturnType<typeof getSocket> | null = null
-    try {
-      socket = getSocket()
-      if (socket) {
-        socket.emit('join_order', orderId)
-        socket.on('order_status_updated', (data: { order_id: string; status: string }) => {
-          if (data.order_id === orderId) { setOrder(prev => prev ? { ...prev, status: data.status } : prev); triggerPulse() }
-        })
-        socket.on('payment_success', (data: { order_id: string }) => {
-          if (data.order_id === orderId) { setOrder(prev => prev ? { ...prev, status: 'paid', payment_status: 'captured' } : prev); triggerPulse() }
-        })
+  if (!orderId) return
+
+  // ✅ Initial fetch
+  api.get(`/orders/${orderId}`)
+    .then(res => { if (res.success) setOrder(res.data) })
+    .finally(() => setLoading(false))
+
+  // ✅ Polling
+  const poll = setInterval(() => {
+    api.get(`/orders/${orderId}`).then(res => {
+      if (res.success && res.data.status !== order?.status) {
+        setOrder(res.data)
       }
-    } catch (err) { console.error('Socket init failed on order page:', err) }
-    return () => { if (socket) { socket.off('order_status_updated'); socket.off('payment_success') } }
-  }, [orderId])
+    })
+  }, 10000)
+
+  let socket: ReturnType<typeof getSocket> | null = null
+
+  try {
+    socket = getSocket()
+    if (socket) {
+      socket.emit('join_order', orderId)
+
+      socket.on('connect', async () => {
+        socket!.emit('join_order', orderId)
+
+        const res = await api.get(`/orders/${orderId}`)
+        if (res.success) setOrder(res.data)
+      })
+
+      socket.on('order_status_updated', (data) => {
+        if (data.order_id === orderId) {
+          setOrder(prev => prev ? { ...prev, status: data.status } : prev)
+          triggerPulse()
+        }
+      })
+
+      socket.on('payment_success', (data) => {
+        if (data.order_id === orderId) {
+          setOrder(prev => prev
+            ? { ...prev, status: 'paid', payment_status: 'captured' }
+            : prev
+          )
+          triggerPulse()
+        }
+      })
+    }
+  } catch (err) {
+    console.error('Socket init failed:', err)
+  }
+
+  return () => {
+    clearInterval(poll)
+
+    if (socket) {
+      socket.off('order_status_updated')
+      socket.off('payment_success')
+      socket.off('connect')
+    }
+  }
+
+}, [orderId])
+
+useEffect(() => {
+  if (!orderId) return
+
+  const onVisible = () => {
+    if (document.visibilityState === 'visible') {
+      api.get(`/orders/${orderId}`).then(res => {
+        if (res.success) setOrder(res.data)
+      })
+    }
+  }
+
+  document.addEventListener('visibilitychange', onVisible)
+
+  return () => {
+    document.removeEventListener('visibilitychange', onVisible)
+  }
+}, [orderId])
 
   if (loading) return (
     <div style={{ minHeight: '100vh', background: '#FAF7F2', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
