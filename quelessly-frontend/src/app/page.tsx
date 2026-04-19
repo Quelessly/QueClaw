@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import QuelesslyHero from '@/components/QuelesslyHero'
 
 interface ActiveOrder {
   orderId: string
@@ -468,6 +469,9 @@ export default function HomePage() {
           <style>{`@keyframes scrollCue{0%,100%{transform:scaleY(0);transform-origin:top}50%{transform:scaleY(1);transform-origin:top}}`}</style>
         </div>
       </section>
+
+       {/* ── CINEMATIC SCROLL HERO ─────────────────────────────────────────────── */}
+      <QuelesslyHero />
 
       {/* ── TICKER ───────────────────────────────────────────────────────────── */}
       <div style={{ borderTop: '1px solid var(--border2)', borderBottom: '1px solid var(--border2)', padding: '14px 0', background: 'var(--cream2)', position: 'relative', zIndex: 1, overflow: 'hidden' }}>
