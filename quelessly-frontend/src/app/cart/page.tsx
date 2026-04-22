@@ -32,6 +32,7 @@ export default function CartPage() {
   const placeOrder = async () => {
     setLoading(true)
     try {
+      // Step 1 — create order in our DB
       const orderRes = await api.post('/orders', {
         vendor_id: vendorId,
         items: cart.map((i) => ({ menu_item_id: i.id, quantity: i.quantity })),
@@ -39,62 +40,75 @@ export default function CartPage() {
       if (!orderRes.success) throw new Error(orderRes.message)
       const orderId = orderRes.data.id
 
+      // Step 2 — initiate payment, get Cashfree payment_session_id
       const payRes = await api.post('/payments/initiate', { order_id: orderId })
       if (!payRes.success) throw new Error(payRes.message)
 
-      const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: payRes.data.amount,
-        currency: payRes.data.currency,
-        order_id: payRes.data.razorpay_order_id,
-        name: 'Quelessly',
-        description: `Order #${orderId.slice(0, 8).toUpperCase()}`,
-        handler: async (response: {
-          razorpay_order_id: string
-          razorpay_payment_id: string
-          razorpay_signature: string
-        }) => {
-          const verifyRes = await api.post('/payments/verify', {
-            razorpay_order_id: response.razorpay_order_id,
-            razorpay_payment_id: response.razorpay_payment_id,
-            razorpay_signature: response.razorpay_signature,
-          })
-          if (verifyRes.success) {
-            localStorage.setItem('active_order', JSON.stringify({ orderId, vendorId, total, items: cart, timestamp: Date.now() }))
-            localStorage.removeItem('cart')
-            localStorage.removeItem('vendorId')
-            router.push(`/order/${orderId}`)
-          } else {
-            toast('Payment verification failed', 'error')
-            setLoading(false)
-          }
-        },
-        modal: { ondismiss: () => { setLoading(false); toast('Payment cancelled', 'warning') } },
-        theme: { color: '#ff6b00' },
+      const { payment_session_id, cf_order_id } = payRes.data
+
+      // Step 3 — open Cashfree popup checkout
+      const cashfree = (window as any).Cashfree({
+        mode: process.env.NEXT_PUBLIC_CASHFREE_ENV || 'sandbox',
+      })
+
+      const result = await cashfree.checkout({
+        paymentSessionId: payment_session_id,
+        redirectTarget: '_modal',   // popup — same UX as Razorpay modal
+      })
+
+      if (result.error) {
+        // User closed the modal or payment errored
+        toast(result.error.message || 'Payment cancelled', 'warning')
+        setLoading(false)
+        return
       }
 
-      const rzp = new (window as any).Razorpay(options)
-      rzp.on('payment.failed', () => { toast('Payment failed. Try again.', 'error'); setLoading(false) })
-      rzp.open()
+      if (result.redirect) {
+        // Edge case: in-app browsers can't open modal, Cashfree redirects instead
+        // The return_url in cashfree.service.ts will handle the redirect landing
+        return
+      }
+
+      if (result.paymentDetails) {
+        // Payment attempt completed — verify server-side before trusting it
+        const verifyRes = await api.post('/payments/verify', {
+          cf_order_id,
+          cf_payment_id: result.paymentDetails.paymentMessage ?? '',
+        })
+
+        if (verifyRes.success) {
+          localStorage.setItem(
+            'active_order',
+            JSON.stringify({ orderId, vendorId, total, items: cart, timestamp: Date.now() })
+          )
+          localStorage.removeItem('cart')
+          localStorage.removeItem('vendorId')
+          router.push(`/order/${orderId}`)
+        } else {
+          toast('Payment verification failed. Contact support.', 'error')
+          setLoading(false)
+        }
+      }
     } catch (err: any) {
       toast(err.message || 'Something went wrong', 'error')
       setLoading(false)
     }
   }
 
-  if (cart.length === 0) return (
-    <div style={{ minHeight: '100vh', background: '#FAF7F2', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, padding: '0 24px', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
-      <div style={{ width: 96, height: 96, background: '#F2EDE4', borderRadius: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>🛒</div>
-      <div style={{ textAlign: 'center' }}>
-        <h2 style={{ fontFamily: 'var(--font-fraunces), serif', fontStyle: 'italic', fontWeight: 700, fontSize: 26, color: '#1a1714', letterSpacing: '-0.5px', margin: '0 0 4px' }}>Cart is empty</h2>
-        <p style={{ color: '#8a7f72', fontSize: 14, margin: 0 }}>Add items from the menu first</p>
+  if (cart.length === 0)
+    return (
+      <div style={{ minHeight: '100vh', background: '#FAF7F2', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 24, padding: '0 24px', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+        <div style={{ width: 96, height: 96, background: '#F2EDE4', borderRadius: 28, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 48 }}>🛒</div>
+        <div style={{ textAlign: 'center' }}>
+          <h2 style={{ fontFamily: 'var(--font-fraunces), serif', fontStyle: 'italic', fontWeight: 700, fontSize: 26, color: '#1a1714', letterSpacing: '-0.5px', margin: '0 0 4px' }}>Cart is empty</h2>
+          <p style={{ color: '#8a7f72', fontSize: 14, margin: 0 }}>Add items from the menu first</p>
+        </div>
+        <button onClick={() => router.back()}
+          style={{ padding: '12px 28px', background: '#ff6b00', color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
+          ← Back to Menu
+        </button>
       </div>
-      <button onClick={() => router.back()}
-        style={{ padding: '12px 28px', background: '#ff6b00', color: '#fff', borderRadius: 14, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', fontFamily: 'var(--font-dm-sans), sans-serif' }}>
-        ← Back to Menu
-      </button>
-    </div>
-  )
+    )
 
   return (
     <div style={{ minHeight: '100vh', background: '#FAF7F2', paddingBottom: 120, fontFamily: 'var(--font-dm-sans), sans-serif' }}>
@@ -164,7 +178,7 @@ export default function CartPage() {
             </>
           ) : `Proceed to Payment — ₹${total}`}
         </button>
-        <p style={{ textAlign: 'center', fontSize: 12, color: '#8a7f72', marginTop: 8, fontFamily: 'var(--font-dm-mono), monospace' }}>Secured by Razorpay</p>
+        <p style={{ textAlign: 'center', fontSize: 12, color: '#8a7f72', marginTop: 8, fontFamily: 'var(--font-dm-mono), monospace' }}>Secured by Cashfree</p>
       </div>
     </div>
   )

@@ -37,9 +37,10 @@ export const viewport: Viewport = {
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en" className={`dark ${dmSans.variable} ${dmMono.variable} ${fraunces.variable}`}>
-      <body className={`antialiased bg-zinc-950 text-white`}>
+      <body className="antialiased bg-zinc-950 text-white">
+        {/* Cashfree JS SDK */}
         <Script
-          src="https://checkout.razorpay.com/v1/checkout.js"
+          src="https://sdk.cashfree.com/js/v3/cashfree.js"
           strategy="beforeInteractive"
         />
         {children}

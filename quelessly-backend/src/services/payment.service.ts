@@ -1,16 +1,16 @@
 import * as paymentRepo from '../repositories/payment.repository'
 import * as orderRepo from '../repositories/order.repository'
-import { createRazorpayOrder, verifyPaymentSignature } from './razorpay.service'
+import { createCashfreeOrder, fetchCashfreeOrder } from './cashfree.service'
 import { OrderStatus, PaymentStatus } from '@prisma/client'
 import { prisma } from '../config/prisma'
 import { getIO } from '../config/socket'
 
+// ─── Initiate payment — creates Cashfree order, returns session_id to frontend ─
 export const initiatePayment = async (orderId: string) => {
   const order = await orderRepo.getOrderById(orderId)
   if (!order) throw new Error('Order not found')
   if (order.payment_status === PaymentStatus.captured)
     throw new Error('Order already paid')
-
   if (new Date() > order.expires_at)
     throw new Error('Order has expired')
 
@@ -18,40 +18,39 @@ export const initiatePayment = async (orderId: string) => {
   if (existing && existing.status === PaymentStatus.captured)
     throw new Error('Already paid')
 
-  const rzpOrder = await createRazorpayOrder(
-    Number(order.total_amount),
-    orderId
-  )
+  const cfOrder = await createCashfreeOrder(Number(order.total_amount), orderId)
 
   if (!existing) {
     await paymentRepo.createPayment({
       order_id: orderId,
-      razorpay_order_id: rzpOrder.id,
+      razorpay_order_id: cfOrder.cf_order_id,   // reusing column for cf_order_id
       amount: Number(order.total_amount),
     })
   }
 
   return {
-    razorpay_order_id: rzpOrder.id,
-    amount: rzpOrder.amount,
-    currency: rzpOrder.currency,
+    payment_session_id: cfOrder.payment_session_id,
+    cf_order_id: cfOrder.cf_order_id,
+    amount: Number(order.total_amount),
     order_id: orderId,
   }
 }
 
+// ─── Verify and capture — called after frontend gets success callback ─────────
+// For Cashfree we confirm by fetching order status from their API (server-side).
+// There is no client-side signature to verify unlike Razorpay — the source of
+// truth is always the Cashfree order status endpoint.
 export const verifyAndCapture = async (
-  razorpay_order_id: string,
-  razorpay_payment_id: string,
-  razorpay_signature: string
+  cf_order_id: string,
+  cf_payment_id: string   // passed from frontend for record-keeping
 ) => {
-  const isValid = verifyPaymentSignature(
-    razorpay_order_id,
-    razorpay_payment_id,
-    razorpay_signature
-  )
-  if (!isValid) throw new Error('Invalid payment signature')
+  // Always verify with Cashfree API — never trust client-side data
+  const cfOrder = await fetchCashfreeOrder(cf_order_id)
+  if (cfOrder.order_status !== 'PAID') {
+    throw new Error(`Payment not confirmed. Status: ${cfOrder.order_status}`)
+  }
 
-  const payment = await paymentRepo.getPaymentByRazorpayOrderId(razorpay_order_id)
+  const payment = await paymentRepo.getPaymentByRazorpayOrderId(cf_order_id)
   if (!payment) throw new Error('Payment record not found')
 
   // ✅ Idempotency guard — already captured, skip everything
@@ -65,10 +64,9 @@ export const verifyAndCapture = async (
     prisma.payment.update({
       where: { id: payment.id },
       data: {
-        razorpay_payment_id,
-        razorpay_signature,
+        razorpay_payment_id: cf_payment_id,   // reusing column for cf_payment_id
         status: PaymentStatus.captured,
-        method: 'razorpay',
+        method: 'cashfree',
       },
     }),
     prisma.order.update({
