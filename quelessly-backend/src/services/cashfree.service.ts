@@ -12,7 +12,7 @@ const cfHeaders = {
   'Content-Type': 'application/json',
   'x-api-version': CF_API_VERSION,
   'x-client-id': env.CASHFREE_APP_ID,
-  'x-client-secret': env.CASHFREE_SECRET_KEY,
+  'x-secret-key': env.CASHFREE_SECRET_KEY,
 }
 
 // ─── Create a Cashfree order, returns order_id + payment_session_id ───────────
