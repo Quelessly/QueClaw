@@ -1,50 +1,43 @@
-import type { Metadata, Viewport } from 'next'
-import { DM_Sans, DM_Mono, Fraunces } from 'next/font/google'
-import Script from 'next/script'
+import type { Metadata } from 'next'
+import { Fraunces, DM_Sans, DM_Mono } from 'next/font/google'
 import './globals.css'
+
+const fraunces = Fraunces({
+  subsets: ['latin'],
+  variable: '--font-fraunces',
+  display: 'swap',
+})
 
 const dmSans = DM_Sans({
   subsets: ['latin'],
   variable: '--font-dm-sans',
-  weight: ['300', '400', '500', '600'],
   display: 'swap',
 })
 
 const dmMono = DM_Mono({
   subsets: ['latin'],
+  weight: ['300', '400', '500'],
   variable: '--font-dm-mono',
-  weight: ['400', '500'],
-  display: 'swap',
-})
-
-const fraunces = Fraunces({
-  subsets: ['latin'],
-  variable: '--font-fraunces',
-  weight: ['400', '700', '900'],
-  style: ['normal', 'italic'],
   display: 'swap',
 })
 
 export const metadata: Metadata = {
-  title: 'QueLessly',
-  description: 'QR-based food ordering for college canteens',
+  title: 'Quelessly — QR-based food ordering for college canteens',
+  description:
+    'Scan. Order. Pay via UPI. Track in real time. No app, no account needed.',
 }
 
-export const viewport: Viewport = {
-  themeColor: '#09090b',
-}
-
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({
+  children,
+}: {
+  children: React.ReactNode
+}) {
   return (
-    <html lang="en" className={`dark ${dmSans.variable} ${dmMono.variable} ${fraunces.variable}`}>
-      <body className="antialiased bg-zinc-950 text-white">
-        {/* Cashfree JS SDK */}
-        <Script
-          src="https://sdk.cashfree.com/js/v3/cashfree.js"
-          strategy="beforeInteractive"
-        />
-        {children}
-      </body>
+    <html
+      lang="en"
+      className={`${fraunces.variable} ${dmSans.variable} ${dmMono.variable}`}
+    >
+      <body>{children}</body>
     </html>
   )
 }
