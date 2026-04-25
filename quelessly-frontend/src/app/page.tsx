@@ -5,7 +5,7 @@ import dynamic from 'next/dynamic'
 // 2. Posts to window.parent at mount (edit-mode protocol)
 // 3. Uses IntersectionObserver, scroll events, window.animate
 const QuelesslyCanvas = dynamic(
-  () => import('@/components/quelessly/Canvas'),
+   () => import('@/components/Canvas'),
   { ssr: false },
 )
 
