@@ -992,6 +992,42 @@ function SettingsTab({ vendor, token, toast, onLogout }: {
     finally { setSaving(false) }
   }
 
+  // ── Razorpay Keys (Payment Setup) state ──────────────────────────────────
+  const [rzpKeyId, setRzpKeyId] = useState('')
+  const [rzpKeySecret, setRzpKeySecret] = useState('')
+  const [rzpKeyStatus, setRzpKeyStatus] = useState<{ configured: boolean; key_id_hint: string | null } | null>(null)
+  const [rzpSaving, setRzpSaving] = useState(false)
+  const [rzpError, setRzpError] = useState('')
+
+  const loadKeyStatus = () => {
+    api.get('/auth/razorpay-keys/status', token).then((res) => {
+      if (res.success) setRzpKeyStatus(res.data)
+    })
+  }
+  useEffect(() => { loadKeyStatus() }, [])
+
+  const saveRazorpayKeys = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setRzpError('')
+    if (!rzpKeyId.trim() || !rzpKeySecret.trim()) { toast('Enter both fields', 'warning'); return }
+    setRzpSaving(true)
+    try {
+      const res = await api.patch('/auth/razorpay-keys', {
+        razorpay_key_id: rzpKeyId.trim(),
+        razorpay_key_secret: rzpKeySecret.trim(),
+      }, token)
+      if (!res.success) { setRzpError(res.message || 'Failed to save keys'); return }
+      setRzpKeyId('')
+      setRzpKeySecret('') // never keep the secret in state after save
+      toast('Razorpay connected!', 'success')
+      loadKeyStatus()
+    } catch {
+      setRzpError('Could not reach server')
+    } finally {
+      setRzpSaving(false)
+    }
+  }
+
   const inputStyle = { width: '100%', background: '#1c1c1c', border: '1px solid #27272a', borderRadius: 12, padding: '12px 16px', fontSize: 14, color: '#fff', outline: 'none', fontFamily: "var(--font-dm-sans), sans-serif", boxSizing: 'border-box' as const }
   const labelStyle = { display: 'block', fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase' as const, marginBottom: 8, fontFamily: "var(--font-dm-mono), monospace" }
 
@@ -1016,6 +1052,53 @@ function SettingsTab({ vendor, token, toast, onLogout }: {
           </button>
         </form>
       </div>
+
+      {/* ── Payment Setup — per-vendor Razorpay keys ── */}
+      <div style={{ background: '#0d0d0d', border: '1px solid #1c1c1c', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 16 }}>
+        <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>Payment Setup</p>
+        <p style={{ fontSize: 12, color: '#3f3f46', margin: 0, fontFamily: "var(--font-dm-sans), sans-serif", lineHeight: 1.6 }}>
+          Enter your own Razorpay live keys. Student payments go directly to your Razorpay account — Quelessly never touches the money.
+        </p>
+        {rzpKeyStatus?.configured && (
+          <p style={{ fontSize: 13, color: '#a3e635', margin: 0, fontFamily: "var(--font-dm-sans), sans-serif", fontWeight: 600 }}>
+            ✓ Razorpay connected ({rzpKeyStatus.key_id_hint})
+          </p>
+        )}
+        <form onSubmit={saveRazorpayKeys} style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+          <div>
+            <label style={labelStyle}>Razorpay Key ID</label>
+            <input
+              type="text"
+              value={rzpKeyId}
+              onChange={e => setRzpKeyId(e.target.value)}
+              placeholder="rzp_live_..."
+              autoComplete="off"
+              style={inputStyle}
+              onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+              onBlur={e => e.target.style.borderColor = '#27272a'} />
+          </div>
+          <div>
+            <label style={labelStyle}>Razorpay Key Secret</label>
+            <input
+              type="password"
+              value={rzpKeySecret}
+              onChange={e => setRzpKeySecret(e.target.value)}
+              placeholder="Your key secret"
+              autoComplete="new-password"
+              style={inputStyle}
+              onFocus={e => e.target.style.borderColor = 'rgba(255,107,0,0.5)'}
+              onBlur={e => e.target.style.borderColor = '#27272a'} />
+          </div>
+          {rzpError && (
+            <p style={{ fontSize: 12, color: '#f87171', margin: 0, fontFamily: "var(--font-dm-sans), sans-serif" }}>{rzpError}</p>
+          )}
+          <button type="submit" disabled={rzpSaving || !rzpKeyId || !rzpKeySecret}
+            style={{ width: '100%', padding: '12px 0', borderRadius: 12, fontWeight: 700, fontSize: 14, border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, background: '#ff6b00', color: '#fff', fontFamily: "var(--font-dm-sans), sans-serif", opacity: (rzpSaving || !rzpKeyId || !rzpKeySecret) ? 0.6 : 1 }}>
+            {rzpSaving ? <><span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.3)', borderTopColor: '#fff', borderRadius: '50%', display: 'inline-block', animation: 'spin 0.8s linear infinite' }} />Saving…</> : 'Save'}
+          </button>
+        </form>
+      </div>
+
       <div style={{ background: '#0d0d0d', border: '1px solid rgba(244,63,94,0.12)', borderRadius: 20, padding: 24, display: 'flex', flexDirection: 'column', gap: 12 }}>
         <p style={{ fontSize: 10, fontWeight: 700, color: '#52525b', letterSpacing: 2, textTransform: 'uppercase', fontFamily: "var(--font-dm-mono), monospace", margin: 0 }}>Account</p>
         <button onClick={onLogout}

@@ -43,7 +43,7 @@ export default function CartPage() {
       if (!payRes.success) throw new Error(payRes.message)
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: payRes.data.razorpayKeyId, // ← vendor's own public key ID, not an env var
         amount: payRes.data.amount,
         currency: payRes.data.currency,
         order_id: payRes.data.razorpay_order_id,
