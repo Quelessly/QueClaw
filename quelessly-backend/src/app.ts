@@ -12,10 +12,7 @@ const app = express()
 
 app.set('trust proxy', 1) // ✅ Trust Railway's proxy to get real client IPs
 
-
 app.use(helmet())
-
-
 
 app.use(cors({
   origin: [
@@ -27,9 +24,6 @@ app.use(cors({
   ],
   credentials: true,
 }))
-
-// ✅ Webhook must get raw body before any other middleware
-app.use('/api/v1/payments/webhook', express.raw({ type: 'application/json' }))
 
 app.use(express.json())
 
@@ -51,7 +45,18 @@ const generalLimiter = rateLimit({
   legacyHeaders: false,
 })
 
+// ✅ Razorpay keys endpoint — keys change rarely; throttle abuse from a
+// compromised vendor token. 10 per 15 minutes per IP.
+const keysLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 10,
+  message: { error: 'Too many requests, please try again later' },
+  standardHeaders: true,
+  legacyHeaders: false,
+})
+
 app.use('/api/v1/auth/login', authLimiter)
+app.use('/api/v1/auth/razorpay-keys', keysLimiter)
 app.use('/api/v1/orders', generalLimiter)
 app.use('/api/v1/payments/initiate', generalLimiter)
 app.use('/api/v1/menu/public', generalLimiter)

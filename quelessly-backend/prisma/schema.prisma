@@ -8,12 +8,14 @@ datasource db {
 }
 
 model Vendor {
-  id            String   @id @default(uuid())
-  name          String
-  email         String   @unique
-  password_hash String
-  upi_id        String?
-  created_at    DateTime @default(now())
+  id                  String   @id @default(uuid())
+  name                String
+  email               String   @unique
+  password_hash       String
+  upi_id              String?
+  razorpay_key_id     String? // vendor's own Razorpay Key ID (public by design)
+  razorpay_key_secret String? // vendor's own Razorpay Key Secret (AES-256-GCM encrypted, never returned by API)
+  created_at          DateTime @default(now())
 
   menu_items  MenuItem[]
   orders      Order[]

@@ -1,8 +1,9 @@
 import bcrypt from 'bcryptjs'
-import jwt from 'jsonwebtoken'
+import jwt, { SignOptions } from 'jsonwebtoken'
 import { Resend } from 'resend'
 import { env } from '../config/env'
 import * as vendorRepo from '../repositories/vendor.repository'
+import { encrypt } from '../utils/encryption'
 import { prisma } from '../config/prisma'
 
 const resend = new Resend(env.RESEND_API_KEY)
@@ -24,11 +25,9 @@ export const login = async (email: string, password: string) => {
   if (!vendor) throw new Error('Invalid credentials')
   const valid = await bcrypt.compare(password, vendor.password_hash)
   if (!valid) throw new Error('Invalid credentials')
-  const token = jwt.sign(
-    { vendorId: vendor.id },
-    env.JWT_SECRET as string,
-    { expiresIn: '7d' }
-  )
+  const token = jwt.sign({ vendorId: vendor.id }, env.JWT_SECRET, {
+    expiresIn: env.JWT_EXPIRES_IN as SignOptions['expiresIn'],
+  })
   return { token, vendor: { id: vendor.id, name: vendor.name, email: vendor.email } }
 }
 
@@ -42,6 +41,35 @@ export const getVendorPublic = async (vendorId: string) => {
   const vendor = await vendorRepo.findVendorById(vendorId)
   if (!vendor) throw new Error('Vendor not found')
   return { id: vendor.id, name: vendor.name }
+}
+
+export const updateRazorpayKeys = async (
+  vendorId: string,
+  razorpayKeyId: string,
+  razorpayKeySecret: string
+) => {
+  // Secret is encrypted before it ever touches the DB; plaintext exists
+  // only in this request's memory.
+  await prisma.vendor.update({
+    where: { id: vendorId },
+    data: {
+      razorpay_key_id: razorpayKeyId,
+      razorpay_key_secret: encrypt(razorpayKeySecret),
+    },
+  })
+  return { success: true }
+}
+
+export const getRazorpayKeyStatus = async (vendorId: string) => {
+  const vendor = await prisma.vendor.findUnique({
+    where: { id: vendorId },
+    select: { razorpay_key_id: true, razorpay_key_secret: true },
+  })
+  if (!vendor) throw new Error('Vendor not found')
+  return {
+    configured: !!(vendor.razorpay_key_id && vendor.razorpay_key_secret),
+    key_id_hint: vendor.razorpay_key_id ? `...${vendor.razorpay_key_id.slice(-6)}` : null,
+  }
 }
 
 export const requestPasswordReset = async (email: string) => {

@@ -1,15 +1,19 @@
 import Razorpay from 'razorpay'
 import crypto from 'crypto'
-import { env } from '../config/env'
 
-export const razorpay = new Razorpay({
-  key_id: env.RAZORPAY_KEY_ID,
-  key_secret: env.RAZORPAY_KEY_SECRET,
-})
+// No global Razorpay instance — instantiated per vendor per request
+const getVendorRazorpayInstance = (keyId: string, keySecret: string): Razorpay =>
+  new Razorpay({ key_id: keyId, key_secret: keySecret })
 
-export const createRazorpayOrder = async (amount: number, orderId: string) => {
+export const createRazorpayOrder = async (
+  amount: number, // in rupees
+  orderId: string,
+  keyId: string,
+  keySecret: string
+) => {
+  const razorpay = getVendorRazorpayInstance(keyId, keySecret)
   return razorpay.orders.create({
-    amount: Math.round(amount * 100),
+    amount: Math.round(amount * 100), // paise — Math.round guards float drift
     currency: 'INR',
     receipt: orderId,
   })
@@ -18,23 +22,19 @@ export const createRazorpayOrder = async (amount: number, orderId: string) => {
 export const verifyPaymentSignature = (
   razorpay_order_id: string,
   razorpay_payment_id: string,
-  razorpay_signature: string
+  razorpay_signature: string,
+  keySecret: string // vendor's own key secret
 ): boolean => {
   const body = razorpay_order_id + '|' + razorpay_payment_id
-  const expected = crypto
-    .createHmac('sha256', env.RAZORPAY_KEY_SECRET)
-    .update(body)
-    .digest('hex')
-  return expected === razorpay_signature
-}
+  const expected = crypto.createHmac('sha256', keySecret).update(body).digest('hex')
 
-export const verifyWebhookSignature = (
-  rawBody: string,
-  signature: string
-): boolean => {
-  const expected = crypto
-    .createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET)  // ← separate secret now
-    .update(rawBody)
-    .digest('hex')
-  return expected === signature
+  // Constant-time comparison — prevents timing attacks on signature guessing
+  try {
+    const expectedBuf = Buffer.from(expected, 'hex')
+    const receivedBuf = Buffer.from(razorpay_signature, 'hex')
+    if (expectedBuf.length !== receivedBuf.length) return false
+    return crypto.timingSafeEqual(expectedBuf, receivedBuf)
+  } catch {
+    return false // non-hex or malformed signature
+  }
 }
